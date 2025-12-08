@@ -32,11 +32,11 @@ Arbre *rotation_gauche_droite(Arbre *a){
 }
 
 /*affichage/recup csv
-junction = branchement 1 des tuyaux (stockage -> service)  (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);vide; fuite)
-service = branchement 2 des tuyaux (service -> menage)     (nom #code usine (10);nom #code jonction(9);nom #code service(10);vide; fuite)
-well/ well field/ fountain/ resurgence = source            (nom #code source(10);nom #code usine  (10);capa_max             ;fuite)
-storage = endroit de stockage                              (nom #code usine (10);nom #code stockage(6);vide                 ;fuite)
-unit/ module/ plant/ = usine                               (nom #code usine (10);vide                 ;capa_max             ;vide)
+junction = branchement 1 des tuyaux (stockage -> service)  (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);        ;fuite)
+service = branchement 2 des tuyaux (service -> menage)     (nom #code usine (10);nom #code jonction(9);nom #code service(10);        ;fuite)
+well/ well field/ fountain/ resurgence = source            (                    ;nom #code source(10) ;nom #code usine  (10);capa_max;fuite)
+storage = endroit de stockage                              (                    ;nom #code usine (10) ;nom #code stockage(6);        ;fuite)
+unit/ module/ plant/ = usine                               (                    ;nom #code usine (10) ;                     ;capa_max;     )
 cust = menages
 
 
@@ -90,19 +90,60 @@ typedef struct Source{
 }source;
 
 //lecture fichier csv
-//il existe des lignes avec 3(;) (source/usine/stockage) et certaines avec 4(;) (jonction/service)
 int recup_type(FILE* file){  
     if(file == NULL){exit (1);}
     int ch;
-    int count_sep = 0;  //compteur ;
+    int count_hash = 0; //compteur (#)
+    int count_semi = 0; //compteur (;)
+    int col2 = 0;      //compteur (longueur code colonne 2)
+    int col3 = 0;      //compteur (longueur code colonne 3)
     long pos = ftell(file);
     while(ch = getc(file) != EOF && ch != '\n'){
+        if(ch == '#'){
+            count_hash++;
+        }
         if(ch == ';'){
-            count_sep++;
+            count_semi++;
+        }
+        if(count_hash == 2 && count_semi == 1){
+            col2++;
+        }
+        if(count_hash == 2 && count_semi == 2){
+            col3++;
         }
     }
     fseek(file, pos, SEEK_SET); // SEEK_SET -> fseek cherche par rapport au debut du doc (SEEK_CUR; a partir du curseur/SEEK_END; a partir de la fin;)
-    return count_sep;
+    if(count_hash == 1){
+        return ?; //valeur pour usine
+    }
+    if(count_hash == 2){
+        if(col3 == 6){
+            return ?; //valeur pour stackage
+        }
+        if(col3 == 10){
+            return ?; //valeur pour source
+        }
+        else{
+            printf("erreur de categorisation");
+            exit(1);
+        }
+    }
+    if(count_hash == 3){
+        if(col2 == 6){
+            return ?; //valeur pour jonction
+        }
+        if(col2 == 9){
+            return ?; //valeur pour service
+        }
+        else{
+            printf("erreur de categorisation");
+            exit(1);  
+        }
+    }
+    else{
+        printf("erreur de categorisation");
+        exit(1); 
+    }
 }
 
 void next_hash(FILE* file){         //deplace curseur vers prochain (#) (pour skip les noms)
