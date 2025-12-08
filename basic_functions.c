@@ -99,9 +99,18 @@ int recup_type(FILE* file){
     return count_sep;
 }
 
-void next_hash(FILE* file){
+void next_hash(FILE* file){         //deplace curseur vers prochain (#) (pour skip les noms)
     if(file == NULL){exit(1);}
     int ch;
-    while(ch = getc(file) != EOF && ch != '\n' && ch != '#'){
+    while((ch = getc(file)) != '#'){
+        if(ch == EOF || ch == '\n'){exit(1);}
+    }
+}
+
+void next_semi(FILE* file){         //deplace curseur vers prochain (;)
+    if(file == NULL){exit(1);}
+    int ch;
+    while((ch = getc(file)) != ';'){
+        if(ch == EOF || ch == '\n'){exit(1);}
     }
 }
