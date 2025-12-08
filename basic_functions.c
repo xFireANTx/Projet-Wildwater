@@ -41,13 +41,15 @@ service = branchement 2 des tuyaux (service -> menage)
 cust = menages
 
 */
-//unit/ module/ plant/ = usine (nom + #code;vide;capa_max;vide)
+//unit/ module/ plant/ = usine 
+//(nom + #code;vide;capa_max;vide)
 typedef struct Usine{
     char code_u[10];
     int capa_max;
 }usine;
 
-//junction = branchement 1 des tuyaux (stockage -> services) (nom + #code usine; nom + code stockage; code jonction; vide; fuite)
+//junction = branchement 1 des tuyaux 
+//(stockage -> services) (nom + #code usine; nom + code stockage; code jonction; vide; fuite)
 typedef struct Jonction{
     char code_u[10];
     char code_st[6];
@@ -55,7 +57,8 @@ typedef struct Jonction{
     float fuite;
 }jonction;
 
-//service = branchement 2 des tuyaux (service -> menage) (nom + #code usine; nom + code jonction; code service; vide; fuite)
+//service = branchement 2 des tuyaux 
+//(service -> menage) (nom + #code usine; nom + code jonction; code service; vide; fuite)
 typedef struct Service{
     char code_u[10];
     char code_j[9];
@@ -63,14 +66,16 @@ typedef struct Service{
     float fuite;
 }service;
 
-//storage = endroit de stockage (usine -> stockage) (nom + #code usine; nom + #code stockage; vide; fuite)
+//storage = endroit de stockage 
+//(usine -> stockage) (nom + #code usine; nom + #code stockage; vide; fuite)
 typedef struct Storage{
     char code_u[10];
     char code_st[6];
     float fuite;
 }storage;
 
-//source/ well/ well field/ fountain/ resurgence = la source d'eau (source -> usine) (nom + #code source; nom + #code usine; capa_max; fuite)
+//source/ well/ well field/ fountain/ resurgence = la source d'eau 
+//(source -> usine) (nom + #code source; nom + #code usine; capa_max; fuite)
 typedef struct Source{
     char code_w[10];
     char code_u[10];
@@ -78,3 +83,25 @@ typedef struct Source{
     float fuite;
 }source;
 
+//lecture fichier csv
+//il existe des lignes avec 3(;) (source/usine/stockage) et certaines avec 4(;) (jonction/service)
+int recup_type(FILE* file){  
+    if(file == NULL){exit (1);}
+    int ch;
+    int count_sep = 0;  //compteur ;
+    long pos = ftell(file);
+    while(ch = getc(file) != EOF && ch != '\n'){
+        if(ch == ';'){
+            count_sep++;
+        }
+    }
+    fseek(file, pos, SEEK_SET); // SEEK_SET -> fseek cherche par rapport au debut du doc (SEEK_CUR; a partir du curseur/SEEK_END; a partir de la fin;)
+    return count_sep;
+}
+
+void next_hash(FILE* file){
+    if(file == NULL){exit(1);}
+    int ch;
+    while(ch = getc(file) != EOF && ch != '\n' && ch != '#'){
+    }
+}
