@@ -41,30 +41,40 @@ service = branchement 2 des tuyaux (service -> menage)
 cust = menages
 
 */
-//unit/ module/ plant/ = usine
+//unit/ module/ plant/ = usine (nom + #code;vide;capa_max;vide)
 typedef struct Usine{
-    char code[10];
+    char code_u[10];
     int capa_max;
 }usine;
 
-//junction = branchement 1 des tuyaux (stockage -> service)
+//junction = branchement 1 des tuyaux (stockage -> services) (nom + #code usine; nom + code stockage; code jonction; vide; fuite)
 typedef struct Jonction{
-    char code[9];
-
+    char code_u[10];
+    char code_st[6];
+    char code_j[9];
+    float fuite;
 }jonction;
 
-//service = branchement 2 des tuyaux (service -> menage)
+//service = branchement 2 des tuyaux (service -> menage) (nom + #code usine; nom + code jonction; code service; vide; fuite)
 typedef struct Service{
-    char code[9];
-
+    char code_u[10];
+    char code_j[9];
+    char code_s[10];
+    float fuite;
 }service;
 
-//storage = endroit de stockage
+//storage = endroit de stockage (usine -> stockage) (nom + #code usine; nom + #code stockage; vide; fuite)
 typedef struct Storage{
-    char code[6];
+    char code_u[10];
+    char code_st[6];
+    float fuite;
 }storage;
 
-//source/ well/ well field/ fountain/ resurgence = la source d'eau
+//source/ well/ well field/ fountain/ resurgence = la source d'eau (source -> usine) (nom + #code source; nom + #code usine; capa_max; fuite)
 typedef struct Source{
-
+    char code_w[10];
+    char code_u[10];
+    int capa_max;
+    float fuite;
 }source;
+
