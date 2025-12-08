@@ -39,20 +39,31 @@ storage = endroit de stockage                              (                    
 unit/ module/ plant/ = usine                               (                    ;nom #code usine (10) ;                     ;capa_max;     )
 cust = menages
 
-
-
-
-
-
-
-
-*/
-//unit/ module/ plant/ = usine 
-//(nom + #code;vide;capa_max;vide)
+unit/ module/ plant/ = usine 
+(nom + #code;vide;capa_max;vide)*/
 typedef struct Usine{
     char code_u[10];
     int capa_max;
 }usine;
+
+usine *remplir_usine(FILE* file){
+    usine *new = malloc(sizeof(usine));
+    if(new == NULL){ 
+        printf("erreur d'allocation memoire");
+        exit(1);
+    }
+    next_semi(file);
+    next_hash(file);
+    for(int i = 0; i<10; i++){
+        new->code_u[i] = fgetc(file);
+    }
+    next_semi(file);
+    next_semi(file);
+    // a ajouter lire le int et le mettre dans usine->capa_max
+    next_semi(file);
+    // a ajouter passer a la prochaine ligne
+    return new;
+}
 
 //junction = branchement 1 des tuyaux 
 //(stockage -> services) (nom + #code usine; nom + code stockage; code jonction; vide; fuite)
@@ -90,8 +101,8 @@ typedef struct Source{
 }source;
 
 //lecture fichier csv
-int recup_type(FILE* file){  
-    if(file == NULL){exit (1);}
+int recup_type(FILE* file){       //indique quel type d infra est stocké dans la ligne et remet le curseur au debut de la ligne
+    if(file == NULL){exit (1);}   //j ai pas encore mis les valeurs correspondantes
     int ch;
     int count_hash = 0; //compteur (#)
     int count_semi = 0; //compteur (;)
@@ -154,11 +165,12 @@ void next_hash(FILE* file){         //deplace curseur vers prochain (#) (pour sk
     }
 }
 
-void next_semi(FILE* file){         //deplace curseur vers prochain (;)
+void next_semi(FILE* file){         //deplace curseur vers prochain (;) (au cas ou)
     if(file == NULL){exit(1);}
     int ch;
     while((ch = getc(file)) != ';'){
         if(ch == EOF || ch == '\n'){exit(1);}
     }
 }
+
 
