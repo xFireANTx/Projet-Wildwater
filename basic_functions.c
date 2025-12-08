@@ -32,13 +32,19 @@ Arbre *rotation_gauche_droite(Arbre *a){
 }
 
 /*affichage/recup csv
-unit/ module/ plant/ = usine
-source/ well/ well field/ fountain/ resurgence = la source d'eau
-storage = endroit de stockage
-junction = branchement 1 des tuyaux (stockage -> service)
-service = branchement 2 des tuyaux (service -> menage)
-
+junction = branchement 1 des tuyaux (stockage -> service)  (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);vide; fuite)
+service = branchement 2 des tuyaux (service -> menage)     (nom #code usine (10);nom #code jonction(9);nom #code service(10);vide; fuite)
+well/ well field/ fountain/ resurgence = source            (nom #code source(10);nom #code usine  (10);capa_max             ;fuite)
+storage = endroit de stockage                              (nom #code usine (10);nom #code stockage(6);vide                 ;fuite)
+unit/ module/ plant/ = usine                               (nom #code usine (10);vide                 ;capa_max             ;vide)
 cust = menages
+
+
+
+
+
+
+
 
 */
 //unit/ module/ plant/ = usine 
@@ -114,3 +120,4 @@ void next_semi(FILE* file){         //deplace curseur vers prochain (;)
         if(ch == EOF || ch == '\n'){exit(1);}
     }
 }
+
