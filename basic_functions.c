@@ -32,12 +32,14 @@ Arbre *rotation_gauche_droite(Arbre *a){
 }
 
 /*affichage/recup csv
-junction = branchement 1 des tuyaux (stockage -> service)  (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);        ;fuite)
-service = branchement 2 des tuyaux (service -> menage)     (nom #code usine (10);nom #code jonction(9);nom #code service(10);        ;fuite)
-well/ well field/ fountain/ resurgence = source            (                    ;nom #code source(10) ;nom #code usine  (10);capa_max;fuite)
+
+junction = branchement 1 des tuyaux (stockage -> jonction) (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);        ;fuite)
+service = branchement 2   (jonction -> service)            (nom #code usine (10);nom #code jonction(9);nom #code service(9) ;        ;fuite)
+menage/cust = branchement 3 des tuyaux (service -> menage) (nom #code usine (10);nom #code service(9) ;nom #code menage(10) ;        ;fuite)
+well/ well field/ fountain/ resurgence = source            (                    ;nom #code source(10) ;nom #code usine(10)  ;capa_max;fuite)
 storage = endroit de stockage                              (                    ;nom #code usine (10) ;nom #code stockage(6);        ;fuite)
 unit/ module/ plant/ = usine                               (                    ;nom #code usine (10) ;                     ;capa_max;     )
-cust = menages
+
 
 unit/ module/ plant/ = usine 
 (nom + #code;vide;capa_max;vide)*/
@@ -56,7 +58,7 @@ usine *remplir_usine(FILE* file){
     next_hash(file);
     for(int i = 0; i<10; i++){
         new->code_u[i] = fgetc(file);
-    }
+    }                                       //code iden 1
     next_semi(file);
     next_semi(file);
     // a ajouter lire le int et le mettre dans usine->capa_max
@@ -74,14 +76,100 @@ typedef struct Jonction{
     float fuite;
 }jonction;
 
+jonction *remplir_jonction(FILE* file){
+    jonction *new = malloc(sizeof(jonction));
+    if(new == NULL){ 
+        printf("erreur d'allocation memoire");
+        exit(1);
+    }
+    next_hash(file);
+    for(int i = 0; i<10; i++){
+        new->code_u[i] = fgetc(file);
+    }                                     //code iden 1
+    next_semi(file);
+    next_hash(file);
+    for(int i = 0; i<6; i++){
+        new->code_st[i] = fgetc(file);
+    }                                     //code iden 2
+    next_semi(file);
+    next_hash(file);
+    for(int i = 0; i<9; i++){
+        new->code_j[i] = fgetc(file);
+    }                                     //code iden 3
+    next_semi(file);
+    next_semi(file);
+    fscanf(file, "%f", new->fuite);
+    // a ajouter passer a la prochaine ligne
+    return new;
+}
+
 //service = branchement 2 des tuyaux 
 //(service -> menage) (nom + #code usine; nom + code jonction; code service; vide; fuite)
 typedef struct Service{
     char code_u[10];
     char code_j[9];
-    char code_s[10];
+    char code_s[9];
     float fuite;
 }service;
+
+service *remplir_service(FILE* file){
+    service *new = malloc(sizeof(service));
+    if(new == NULL){ 
+        printf("erreur d'allocation memoire");
+        exit(1);
+    }
+    next_hash(file);
+    for(int i = 0; i<10; i++){
+        new->code_u[i] = fgetc(file);
+    }                                     //code iden 1
+    next_semi(file);
+    next_hash(file);
+    for(int i = 0; i<9; i++){
+        new->code_j [i] = fgetc(file);
+    }                                     //code iden 2
+    next_semi(file);
+    next_hash(file);
+    for(int i = 0; i<9; i++){
+        new->code_s[i] = fgetc(file);
+    }                                     //code iden 3
+    next_semi(file);
+    fscanf(file, "%f", new->fuite);
+    // a ajouter passer a la prochaine ligne
+    return new;
+}
+
+typedef struct Menage{
+    char code_u[10];
+    char code_s[9];
+    char code_m[10];
+    float fuite;
+}menage;
+
+menage *remplir_service(FILE* file){
+    menage *new = malloc(sizeof(menage));
+    if(new == NULL){ 
+        printf("erreur d'allocation memoire");
+        exit(1);
+    }
+    next_hash(file);
+    for(int i = 0; i<10; i++){
+        new->code_u[i] = fgetc(file);
+    }                                     //code iden 1
+    next_semi(file);
+    next_hash(file);
+    for(int i = 0; i<9; i++){
+        new->code_s [i] = fgetc(file);
+    }                                     //code iden 2
+    next_semi(file);
+    next_hash(file);
+    for(int i = 0; i<9; i++){
+        new->code_m[i] = fgetc(file);
+    }                                     //code iden 3
+    next_semi(file);
+    fscanf(file, "%f", new->fuite);
+    // a ajouter passer a la prochaine ligne
+    return new;
+}
 
 //storage = endroit de stockage 
 //(usine -> stockage) (nom + #code usine; nom + #code stockage; vide; fuite)
@@ -129,7 +217,7 @@ int recup_type(FILE* file){       //indique quel type d infra est stocké dans l
     }
     if(count_hash == 2){
         if(col3 == 6){
-            return ?; //valeur pour stackage
+            return ?; //valeur pour stockage
         }
         if(col3 == 10){
             return ?; //valeur pour source
@@ -144,7 +232,12 @@ int recup_type(FILE* file){       //indique quel type d infra est stocké dans l
             return ?; //valeur pour jonction
         }
         if(col2 == 9){
-            return ?; //valeur pour service
+            if(col3 == 10){
+                return ?; //valeur pour menage
+                }
+            if(col3 == 9){
+                return ?; //valeur pour service
+            }
         }
         else{
             printf("erreur de categorisation");
