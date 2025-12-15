@@ -54,16 +54,22 @@ usine *remplir_usine(FILE* file){
         printf("erreur d'allocation memoire");
         exit(1);
     }
-    next_semi(file);
+
+    next_semi(file);                        //vide
+
     next_hash(file);
     for(int i = 0; i<10; i++){
         new->code_u[i] = fgetc(file);
     }                                       //code iden 1
     next_semi(file);
+
+    next_semi(file);                        //case vide
+
+    fscanf(file, "%d", new->capa_max);      //capa max
     next_semi(file);
-    // a ajouter lire le int et le mettre dans usine->capa_max
-    next_semi(file);
-    // a ajouter passer a la prochaine ligne
+
+                                            //case vide
+
     return new;
 }
 
@@ -82,24 +88,29 @@ jonction *remplir_jonction(FILE* file){
         printf("erreur d'allocation memoire");
         exit(1);
     }
+
     next_hash(file);
     for(int i = 0; i<10; i++){
         new->code_u[i] = fgetc(file);
     }                                     //code iden 1
     next_semi(file);
+
     next_hash(file);
     for(int i = 0; i<6; i++){
         new->code_st[i] = fgetc(file);
     }                                     //code iden 2
     next_semi(file);
+
     next_hash(file);
     for(int i = 0; i<9; i++){
         new->code_j[i] = fgetc(file);
     }                                     //code iden 3
     next_semi(file);
-    next_semi(file);
-    fscanf(file, "%f", new->fuite);
-    // a ajouter passer a la prochaine ligne
+
+    next_semi(file);                      //case vide
+
+    fscanf(file, "%f", new->fuite);       //fuites
+
     return new;
 }
 
@@ -118,23 +129,29 @@ service *remplir_service(FILE* file){
         printf("erreur d'allocation memoire");
         exit(1);
     }
+
     next_hash(file);
     for(int i = 0; i<10; i++){
         new->code_u[i] = fgetc(file);
     }                                     //code iden 1
     next_semi(file);
+
     next_hash(file);
     for(int i = 0; i<9; i++){
         new->code_j [i] = fgetc(file);
     }                                     //code iden 2
     next_semi(file);
+
     next_hash(file);
     for(int i = 0; i<9; i++){
         new->code_s[i] = fgetc(file);
     }                                     //code iden 3
     next_semi(file);
-    fscanf(file, "%f", new->fuite);
-    // a ajouter passer a la prochaine ligne
+
+    next_semi(file);                      //case vide
+
+    fscanf(file, "%f", new->fuite);       //fuites
+
     return new;
 }
 
@@ -151,22 +168,26 @@ menage *remplir_service(FILE* file){
         printf("erreur d'allocation memoire");
         exit(1);
     }
+
     next_hash(file);
     for(int i = 0; i<10; i++){
         new->code_u[i] = fgetc(file);
     }                                     //code iden 1
     next_semi(file);
+
     next_hash(file);
     for(int i = 0; i<9; i++){
         new->code_s [i] = fgetc(file);
     }                                     //code iden 2
     next_semi(file);
+    
     next_hash(file);
     for(int i = 0; i<9; i++){
         new->code_m[i] = fgetc(file);
     }                                     //code iden 3
     next_semi(file);
-    fscanf(file, "%f", new->fuite);
+    next_semi(file);                      //case vide
+    fscanf(file, "%f", new->fuite);       //fuites
     // a ajouter passer a la prochaine ligne
     return new;
 }
@@ -178,6 +199,30 @@ typedef struct Storage{
     char code_st[6];
     float fuite;
 }storage;
+
+storage *remplir_service(FILE* file){
+    storage *new = malloc(sizeof(storage));
+    if(new == NULL){ 
+        printf("erreur d'allocation memoire");
+        exit(1);
+    }
+    next_semi(file);                      //case vide
+    next_hash(file);
+    for(int i = 0; i<10; i++){
+        new->code_u[i] = fgetc(file);
+    }                                     //code iden 1
+    next_semi(file);
+    next_hash(file);
+    for(int i = 0; i<6; i++){
+        new->code_st [i] = fgetc(file);
+    }                                     //code iden 2
+    next_semi(file);                     
+                                          //case vide
+    next_semi(file);
+    fscanf(file, "%f", new->fuite);       //fuites
+    // a ajouter passer a la prochaine ligne
+    return new;
+}
 
 //source/ well/ well field/ fountain/ resurgence = la source d'eau 
 //(source -> usine) (nom + #code source; nom + #code usine; capa_max; fuite)
@@ -258,7 +303,7 @@ void next_hash(FILE* file){         //deplace curseur vers prochain (#) (pour sk
     }
 }
 
-void next_semi(FILE* file){         //deplace curseur vers prochain (;) (au cas ou)
+void next_semi(FILE* file){         //deplace curseur vers prochain (;) (changer de colonne)
     if(file == NULL){exit(1);}
     int ch;
     while((ch = getc(file)) != ';'){
