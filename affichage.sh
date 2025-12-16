@@ -31,19 +31,23 @@ case $base in
         ;;
 esac
 
-gnuplot -e "input='$datafile';output='$output';title='$title'" scripts/histo.gnuplot
-
-echo "Histogramme généré : $output"
-
+gnuplot << EOF
 set terminal png size 1200,600
-set output output
+set output "$output"
 set datafile separator ";"
+
 set style data histograms
 set style fill solid 0.8 border -1
 set boxwidth 0.9
+
 set xtics rotate by -45
 set grid ytics
-set title title
+
+set title "$title"
 set ylabel "Volume (M.m3/an)"
 set xlabel "Usines"
-plot input using 2:xtic(1) notitle
+
+plot "$datafile" using 2:xtic(1) notitle
+EOF
+
+echo "Histogramme généré : $output"
