@@ -4,7 +4,7 @@
 #include <string.h>
 
 void main(){
-    FILE *fichier = fopen("test.csv", "r");
+    FILE *fichier = fopen("c-wildwater_v0.dat", "r");
     int boucle_principale = 0;
     int type = 0;
     char line[256];
