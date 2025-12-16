@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "basic_functions.h"
 
 typedef struct arbre{
     char* identifiant;
@@ -66,10 +67,9 @@ usine *remplir_usine(FILE* file){
     next_semi(file);                        //case vide
 
     fscanf(file, "%d", new->capa_max);      //capa max
-    next_semi(file);
+    next_semi(file); 
 
-                                            //case vide
-
+    next_line(file);                        //case vide
     return new;
 }
 
@@ -110,7 +110,7 @@ jonction *remplir_jonction(FILE* file){
     next_semi(file);                      //case vide
 
     fscanf(file, "%f", new->fuite);       //fuites
-
+    next_line(file);
     return new;
 }
 
@@ -151,7 +151,7 @@ service *remplir_service(FILE* file){
     next_semi(file);                      //case vide
 
     fscanf(file, "%f", new->fuite);       //fuites
-
+    next_line(file);
     return new;
 }
 
@@ -162,7 +162,7 @@ typedef struct Menage{
     float fuite;
 }menage;
 
-menage *remplir_service(FILE* file){
+menage *remplir_menage(FILE* file){
     menage *new = malloc(sizeof(menage));
     if(new == NULL){ 
         printf("erreur d'allocation memoire");
@@ -186,9 +186,11 @@ menage *remplir_service(FILE* file){
         new->code_m[i] = fgetc(file);
     }                                     //code iden 3
     next_semi(file);
+    
     next_semi(file);                      //case vide
+
     fscanf(file, "%f", new->fuite);       //fuites
-    // a ajouter passer a la prochaine ligne
+    next_line(file);
     return new;
 }
 
@@ -200,7 +202,7 @@ typedef struct Storage{
     float fuite;
 }storage;
 
-storage *remplir_service(FILE* file){
+storage *remplir_storage(FILE* file){
     storage *new = malloc(sizeof(storage));
     if(new == NULL){ 
         printf("erreur d'allocation memoire");
@@ -216,11 +218,12 @@ storage *remplir_service(FILE* file){
     for(int i = 0; i<6; i++){
         new->code_st [i] = fgetc(file);
     }                                     //code iden 2
-    next_semi(file);                     
-                                          //case vide
-    next_semi(file);
+    next_semi(file);                   
+
+    next_semi(file);                      //case vide
+
     fscanf(file, "%f", new->fuite);       //fuites
-    // a ajouter passer a la prochaine ligne
+    next_line(file);
     return new;
 }
 
@@ -232,6 +235,32 @@ typedef struct Source{
     int capa_max;
     float fuite;
 }source;
+
+source *remplir_source(FILE* file){
+    source *new = malloc(sizeof(source));
+    if(new == NULL){ 
+        printf("erreur d'allocation memoire");
+        exit(1);
+    }
+    next_semi(file);                      //case vide
+    next_hash(file);
+    for(int i = 0; i<10; i++){
+        new->code_w[i] = fgetc(file);
+    }                                     //code iden 1
+    next_semi(file);
+    next_hash(file);
+    for(int i = 0; i<10; i++){
+        new->code_u [i] = fgetc(file);
+    }                                     //code iden 2
+    next_semi(file);               
+
+    fscanf(file, "%d", new->capa_max); //capa max
+    next_semi(file);
+
+    fscanf(file, "%f", new->fuite);       //fuites
+    next_line(file);
+    return new;
+}
 
 //lecture fichier csv
 int recup_type(FILE* file){       //indique quel type d infra est stocké dans la ligne et remet le curseur au debut de la ligne
@@ -258,41 +287,31 @@ int recup_type(FILE* file){       //indique quel type d infra est stocké dans l
     }
     fseek(file, pos, SEEK_SET); // SEEK_SET -> fseek cherche par rapport au debut du doc (SEEK_CUR; a partir du curseur/SEEK_END; a partir de la fin;)
     if(count_hash == 1){
-        return ?; //valeur pour usine
+        return 2; //valeur pour usine
     }
     if(count_hash == 2){
         if(col3 == 6){
-            return ?; //valeur pour stockage
+            return 3; //valeur pour stockage
         }
         if(col3 == 10){
-            return ?; //valeur pour source
-        }
-        else{
-            printf("erreur de categorisation");
-            exit(1);
+            return 1; //valeur pour source
         }
     }
     if(count_hash == 3){
         if(col2 == 6){
-            return ?; //valeur pour jonction
+            return 4; //valeur pour jonction
         }
         if(col2 == 9){
             if(col3 == 10){
-                return ?; //valeur pour menage
+                return 6; //valeur pour menage
                 }
             if(col3 == 9){
-                return ?; //valeur pour service
+                return 5; //valeur pour service
             }
         }
-        else{
-            printf("erreur de categorisation");
-            exit(1);  
-        }
     }
-    else{
-        printf("erreur de categorisation");
-        exit(1); 
-    }
+    printf("erreur de categorisation");
+    exit(1); 
 }
 
 void next_hash(FILE* file){         //deplace curseur vers prochain (#) (pour skip les noms)
@@ -311,4 +330,11 @@ void next_semi(FILE* file){         //deplace curseur vers prochain (;) (changer
     }
 }
 
+void next_line(FILE* file){         //deplace curseur vers prochain retour a la ligne (changer de ligne)
+    if(file == NULL){exit(1);}
+    int ch;
+    while((ch = getc(file)) != '\n'){
+        if(ch == EOF){exit(1);}
+    }
+}
 
