@@ -1,12 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "basic_functions.h"
-
-typedef struct arbre{
-    char* identifiant;
-    struct arbre *fg;
-    struct arbre *fd;
-}Arbre;
+#include <string.h>
 
 Arbre *rotation_droite(Arbre* a){
     Arbre *b = a->fg;
@@ -34,20 +29,12 @@ Arbre *rotation_gauche_droite(Arbre *a){
 
 /*affichage/recup csv
 
-junction = branchement 1 des tuyaux (stockage -> jonction) (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);        ;fuite)
-service = branchement 2   (jonction -> service)            (nom #code usine (10);nom #code jonction(9);nom #code service(9) ;        ;fuite)
-menage/cust = branchement 3 des tuyaux (service -> menage) (nom #code usine (10);nom #code service(9) ;nom #code menage(10) ;        ;fuite)
-well/ well field/ fountain/ resurgence = source            (                    ;nom #code source(10) ;nom #code usine(10)  ;capa_max;fuite)
-storage = endroit de stockage                              (                    ;nom #code usine (10) ;nom #code stockage(6);        ;fuite)
-unit/ module/ plant/ = usine                               (                    ;nom #code usine (10) ;                     ;capa_max;     )
-
-
-unit/ module/ plant/ = usine 
-(nom + #code;vide;capa_max;vide)*/
-typedef struct Usine{
-    char code_u[10];
-    int capa_max;
-}usine;
+junction = (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);        ;fuite)
+service =  (nom #code usine (10);nom #code jonction(9);nom #code service(9) ;        ;fuite)
+menage =   (nom #code usine (10);nom #code service(9) ;nom #code menage(10) ;        ;fuite)
+source =   (                    ;nom #code source(10) ;nom #code usine(10)  ;capa_max;fuite)
+storage =  (                    ;nom #code usine (10) ;nom #code stockage(6);        ;fuite)
+usine =    (                    ;nom #code usine (10) ;                     ;capa_max;     )*/
 
 usine *remplir_usine(FILE* file){
     usine *new = malloc(sizeof(usine));
@@ -72,15 +59,6 @@ usine *remplir_usine(FILE* file){
     next_line(file);                        //case vide
     return new;
 }
-
-//junction = branchement 1 des tuyaux 
-//(stockage -> services) (nom + #code usine; nom + code stockage; code jonction; vide; fuite)
-typedef struct Jonction{
-    char code_u[10];
-    char code_st[6];
-    char code_j[9];
-    float fuite;
-}jonction;
 
 jonction *remplir_jonction(FILE* file){
     jonction *new = malloc(sizeof(jonction));
@@ -114,15 +92,6 @@ jonction *remplir_jonction(FILE* file){
     return new;
 }
 
-//service = branchement 2 des tuyaux 
-//(service -> menage) (nom + #code usine; nom + code jonction; code service; vide; fuite)
-typedef struct Service{
-    char code_u[10];
-    char code_j[9];
-    char code_s[9];
-    float fuite;
-}service;
-
 service *remplir_service(FILE* file){
     service *new = malloc(sizeof(service));
     if(new == NULL){ 
@@ -154,13 +123,6 @@ service *remplir_service(FILE* file){
     next_line(file);
     return new;
 }
-
-typedef struct Menage{
-    char code_u[10];
-    char code_s[9];
-    char code_m[10];
-    float fuite;
-}menage;
 
 menage *remplir_menage(FILE* file){
     menage *new = malloc(sizeof(menage));
@@ -194,14 +156,6 @@ menage *remplir_menage(FILE* file){
     return new;
 }
 
-//storage = endroit de stockage 
-//(usine -> stockage) (nom + #code usine; nom + #code stockage; vide; fuite)
-typedef struct Storage{
-    char code_u[10];
-    char code_st[6];
-    float fuite;
-}storage;
-
 storage *remplir_storage(FILE* file){
     storage *new = malloc(sizeof(storage));
     if(new == NULL){ 
@@ -226,15 +180,6 @@ storage *remplir_storage(FILE* file){
     next_line(file);
     return new;
 }
-
-//source/ well/ well field/ fountain/ resurgence = la source d'eau 
-//(source -> usine) (nom + #code source; nom + #code usine; capa_max; fuite)
-typedef struct Source{
-    char code_w[10];
-    char code_u[10];
-    int capa_max;
-    float fuite;
-}source;
 
 source *remplir_source(FILE* file){
     source *new = malloc(sizeof(source));
@@ -262,57 +207,51 @@ source *remplir_source(FILE* file){
     return new;
 }
 
-//lecture fichier csv
-int recup_type(FILE* file){       //indique quel type d infra est stocké dans la ligne et remet le curseur au debut de la ligne
-    if(file == NULL){exit (1);}   //j ai pas encore mis les valeurs correspondantes
-    int ch;
-    int count_hash = 0; //compteur (#)
-    int count_semi = 0; //compteur (;)
-    int col2 = 0;      //compteur (longueur code colonne 2)
-    int col3 = 0;      //compteur (longueur code colonne 3)
-    long pos = ftell(file);
-    while(ch = getc(file) != EOF && ch != '\n'){
-        if(ch == '#'){
-            count_hash++;
-        }
-        if(ch == ';'){
-            count_semi++;
-        }
-        if(count_hash == 2 && count_semi == 1){
-            col2++;
-        }
-        if(count_hash == 2 && count_semi == 2){
-            col3++;
-        }
-    }
-    fseek(file, pos, SEEK_SET); // SEEK_SET -> fseek cherche par rapport au debut du doc (SEEK_CUR; a partir du curseur/SEEK_END; a partir de la fin;)
-    if(count_hash == 1){
-        return 2; //valeur pour usine
-    }
-    if(count_hash == 2){
-        if(col3 == 6){
-            return 3; //valeur pour stockage
-        }
-        if(col3 == 10){
-            return 1; //valeur pour source
-        }
-    }
-    if(count_hash == 3){
-        if(col2 == 6){
-            return 4; //valeur pour jonction
-        }
-        if(col2 == 9){
-            if(col3 == 10){
-                return 6; //valeur pour menage
-                }
-            if(col3 == 9){
-                return 5; //valeur pour service
-            }
-        }
-    }
-    printf("erreur de categorisation");
-    exit(1); 
+int empty(const char *s) {
+    return s == NULL || strcmp(s, "-") == 0;
 }
+
+int code_len(const char *s) {
+    const char *p = strchr(s, '#');
+    if (!p) return 0;
+    return strlen(p + 1);
+}
+
+int detect_type(char *line) {
+    char *col[5] = {0};
+    int i = 0;
+
+    char *tok = strtok(line, ";");
+    while (tok && i < 5) {
+        col[i++] = tok;
+        tok = strtok(NULL, ";");
+    }
+
+    int l1 = empty(col[0]) ? 0 : code_len(col[0]);
+    int l2 = empty(col[1]) ? 0 : code_len(col[1]);
+    int l3 = empty(col[2]) ? 0 : code_len(col[2]);
+    int c4 = !empty(col[3]);
+    if (l1 == 0 && l2 == 9 && l3 == 9 && c4) //source
+        return 1;
+
+    if (l1 == 0 && l2 == 9 && l3 == 0 && c4) //usine
+        return 2;
+
+    if (l1 == 0 && l2 == 9 && l3 == 5) // storage
+        return 3;
+
+    if (l1 == 9 && l2 == 5 && l3 == 8) // jonction
+        return 4;
+
+    if (l1 == 9 && l2 == 8 && l3 == 9) // service
+        return 5;
+
+    if (l1 == 9 && l2 == 9 && l3 == 10) // menage
+        return 6;
+    return 0;
+}
+
+
 
 void next_hash(FILE* file){         //deplace curseur vers prochain (#) (pour skip les noms)
     if(file == NULL){exit(1);}
