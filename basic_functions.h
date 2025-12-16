@@ -72,6 +72,8 @@ menage *remplir_menage(FILE* file);
 
 
 int detect_type(char* line); // 1 = source, 2 = usine, 3 = stockage, 4 = jonction, 5 = service, 6 = menages
+int code_len(const char *s);
+int empty(const char *s);
 void next_hash(FILE* file);
 void next_semi(FILE* file);
 void next_line(FILE* file);
