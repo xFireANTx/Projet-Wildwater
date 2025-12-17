@@ -8,7 +8,15 @@
 volume_max(){
 #TODO convertir en million de m3/an (en c ou en shell si possible) (optionnelle créer un unique fichier.c qui regroupe les 2 somme car très similaire)
 	local source="$1"
-	awk -F';' '$3 == "-"' "$source" |cut -d';' -f2,4 | sort -t';' -k1,1 -d -r
+	awk -F';' '$3 == "-"' "$source" |cut -d';' -f2,4 | sort -t';' -k1,1 -d -r > temp_volume
+	
+	gcc -o exe volume.c
+	./exe temp_volume out_volume
+	
+	cat out_volume
+	rm temp_volume out_volume
+
+	
 }
 
 volume_source(){
