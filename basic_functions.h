@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+//arbres
 typedef struct arbre{
     char* identifiant;
     struct arbre *fg;
@@ -15,62 +16,27 @@ Arbre *rotation_gauche(Arbre* a);
 Arbre *rotation_droite_gauche(Arbre *a);
 Arbre *rotation_gauche_droite(Arbre *a);
 
-
-typedef struct Source{
-    
-    char code_w[10];
-    char code_u[10];
+//traitement
+typedef struct Infra{
+    char code_usine[11];
+    char code_precedent[11];
+    char code_actuel[11];
     int capa_max;
     float fuite;
-}source;
-source *remplir_source(FILE* file);
+}infra;
+infra *remplir_infra(char *line, int type);
+void freeTree(arbres_fuites *node);
+void addChild(arbres_fuites *parent, arbres_fuites *child);
+arbres_fuites *createNode(char code[10]);
 
-typedef struct Usine{
+typedef struct Arbre_fuites{
+    char code_usine[11];
+    infra *structure;
+    struct Arbre_fuites *premierf;
+    struct Arbre_fuites *suivantf;
+}arbres_fuites;
 
-    char code_u[10];
-
-    int capa_max;
-
-}usine;
-usine *remplir_usine(FILE* file);
-
-typedef struct Storage{
-
-    char code_u[10];
-    char code_st[6];
-
-    float fuite;
-}storage;
-storage *remplir_storage(FILE* file);
-
-typedef struct Jonction{
-    char code_u[10];
-    char code_st[6];
-    char code_j[9];
-
-    float fuite;
-}jonction;
-jonction *remplir_jonction(FILE* file);
-
-typedef struct Service{
-    char code_u[10];
-    char code_j[9];
-    char code_s[9];
-
-    float fuite;
-}service;
-service *remplir_service(FILE* file);
-
-typedef struct Menage{
-    char code_u[10];
-    char code_s[9];
-    char code_m[10];
-
-    float fuite;
-}menage;
-menage *remplir_menage(FILE* file);
-
-
+//lecture fichier
 int detect_type(char* line); // 1 = source, 2 = usine, 3 = stockage, 4 = jonction, 5 = service, 6 = menages
 int code_len(const char *s);
 int empty(const char *s);
