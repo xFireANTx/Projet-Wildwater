@@ -6,7 +6,7 @@
 
 //arbres
 typedef struct arbre{
-    char* identifiant;
+    arbres_fuites *arbre_fuites; //pour trier l arbre utilise arbre->arbre_fuites->infra->code_usine
     struct arbre *fg;
     struct arbre *fd;
 }Arbre;
@@ -18,23 +18,24 @@ Arbre *rotation_gauche_droite(Arbre *a);
 
 //traitement
 typedef struct Infra{
+    int type;
     char code_usine[11];
     char code_precedent[11];
     char code_actuel[11];
     int capa_max;
     float fuite;
 }infra;
-infra *remplir_infra(char *line, int type);
-void freeTree(arbres_fuites *node);
-void addChild(arbres_fuites *parent, arbres_fuites *child);
-arbres_fuites *createNode(char code[10]);
 
 typedef struct Arbre_fuites{
-    char code_usine[11];
     infra *structure;
     struct Arbre_fuites *premierf;
     struct Arbre_fuites *suivantf;
 }arbres_fuites;
+
+infra *remplir_infra(char *line, int type);
+void freeTree(arbres_fuites *node);
+void addChild(arbres_fuites *parent, arbres_fuites *child);
+arbres_fuites *createNode(infra *new);
 
 //lecture fichier
 int detect_type(char* line); // 1 = source, 2 = usine, 3 = stockage, 4 = jonction, 5 = service, 6 = menages
