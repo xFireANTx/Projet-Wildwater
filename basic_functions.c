@@ -3,6 +3,7 @@
 #include "basic_functions.h"
 #include <string.h>
 
+//arbres
 Arbre *rotation_droite(Arbre* a){
     Arbre *b = a->fg;
     a->fg = b->fg;
@@ -27,8 +28,90 @@ Arbre *rotation_gauche_droite(Arbre *a){
     return rotation_droite(a);
 }
 
-/*affichage/recup csv
 
+arbres_fuites *createNode(char code[10]){
+    arbres_fuites *node = malloc(sizeof(arbres_fuites));
+    if(node == NULL){exit (1);}
+    strncpy(node->code_usine, code, sizeof(node->code_usine) - 1);
+    node->code_usine[sizeof(node->code_usine) - 1] = '\0';
+    node->structure = NULL;
+    node->premierf = NULL;
+    node->suivantf = NULL;
+    return node;
+}
+
+void addChild(arbres_fuites *parent, arbres_fuites *child){
+    if (parent->premierf == NULL) {
+        parent->premierf = child;
+    } else {
+        arbres_fuites *sibling = parent->premierf;
+        while (sibling->suivantf != NULL) {
+            sibling = sibling->suivantf;
+        }
+        sibling->suivantf = child;
+    }
+}
+
+// Libération mémoire
+void freeTree(arbres_fuites *node){
+    if (node == NULL) return;
+    freeTree(node->premierf);
+    freeTree(node->suivantf);
+    free(node->code_usine);
+    free(node->structure);
+    free(node);
+}
+
+infra *remplir_infra(char *line, int type){
+    infra *new = malloc(sizeof(infra));
+    if(new == NULL){ 
+        printf("erreur d'allocation memoire");
+        exit(1);
+    }
+    char *col[5] = {0};
+    int i = 0;
+    char *piece = strtok(line, ";");
+    while(piece && i < 5){
+        col[i++] = piece;
+        piece = strtok(NULL, ";");
+    }
+    if(!empty(col[0])){
+        strncpy(new->code_usine, col[0], sizeof(new->code_usine)-1);
+        new->code_usine[sizeof(new->code_usine)-1] = '\0'; 
+    }
+    else{
+        new->code_usine[0] = NULL;
+    }
+    if(!empty(col[1])){
+        strncpy(new->code_precedent, col[1], sizeof(new->code_precedent)-1);
+        new->code_precedent[sizeof(new->code_precedent)-1] = '\0'; 
+    }
+    else{
+        new->code_precedent[0] = NULL;
+    }
+    if(!empty(col[2])){
+        strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
+        new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
+    }
+    else{
+        new->code_actuel[0] = NULL;
+    }
+    if(!empty(col[3])){
+        new->capa_max = (int)strtol(col[3], NULL, 10);
+    }
+    else{
+        new->capa_max = NULL;
+    }
+    if(!empty(col[4])){
+        new->fuite = strtof(col[4], NULL);
+    }
+    else{
+        new->fuite = 0;
+    }
+    return new;
+}
+
+/*recup csv
 junction = (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);        ;fuite)
 service =  (nom #code usine (10);nom #code jonction(9);nom #code service(9) ;        ;fuite)
 menage =   (nom #code usine (10);nom #code service(9) ;nom #code menage(10) ;        ;fuite)
@@ -36,195 +119,24 @@ source =   (                    ;nom #code source(10) ;nom #code usine(10)  ;cap
 storage =  (                    ;nom #code usine (10) ;nom #code stockage(6);        ;fuite)
 usine =    (                    ;nom #code usine (10) ;                     ;capa_max;     )*/
 
-usine *remplir_usine(FILE* file){
-    usine *new = malloc(sizeof(usine));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
-    }
-
-    next_semi(file);                        //vide
-
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u[i] = fgetc(file);
-    }                                       //code iden 1
-    next_semi(file);
-
-    next_semi(file);                        //case vide
-
-    fscanf(file, "%d", new->capa_max);      //capa max
-    next_semi(file); 
-
-    next_line(file);                        //case vide
-    return new;
-}
-
-jonction *remplir_jonction(FILE* file){
-    jonction *new = malloc(sizeof(jonction));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
-    }
-
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u[i] = fgetc(file);
-    }                                     //code iden 1
-    next_semi(file);
-
-    next_hash(file);
-    for(int i = 0; i<6; i++){
-        new->code_st[i] = fgetc(file);
-    }                                     //code iden 2
-    next_semi(file);
-
-    next_hash(file);
-    for(int i = 0; i<9; i++){
-        new->code_j[i] = fgetc(file);
-    }                                     //code iden 3
-    next_semi(file);
-
-    next_semi(file);                      //case vide
-
-    fscanf(file, "%f", new->fuite);       //fuites
-    next_line(file);
-    return new;
-}
-
-service *remplir_service(FILE* file){
-    service *new = malloc(sizeof(service));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
-    }
-
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u[i] = fgetc(file);
-    }                                     //code iden 1
-    next_semi(file);
-
-    next_hash(file);
-    for(int i = 0; i<9; i++){
-        new->code_j [i] = fgetc(file);
-    }                                     //code iden 2
-    next_semi(file);
-
-    next_hash(file);
-    for(int i = 0; i<9; i++){
-        new->code_s[i] = fgetc(file);
-    }                                     //code iden 3
-    next_semi(file);
-
-    next_semi(file);                      //case vide
-
-    fscanf(file, "%f", new->fuite);       //fuites
-    next_line(file);
-    return new;
-}
-
-menage *remplir_menage(FILE* file){
-    menage *new = malloc(sizeof(menage));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
-    }
-
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u[i] = fgetc(file);
-    }                                     //code iden 1
-    next_semi(file);
-
-    next_hash(file);
-    for(int i = 0; i<9; i++){
-        new->code_s [i] = fgetc(file);
-    }                                     //code iden 2
-    next_semi(file);
-    
-    next_hash(file);
-    for(int i = 0; i<9; i++){
-        new->code_m[i] = fgetc(file);
-    }                                     //code iden 3
-    next_semi(file);
-    
-    next_semi(file);                      //case vide
-
-    fscanf(file, "%f", new->fuite);       //fuites
-    next_line(file);
-    return new;
-}
-
-storage *remplir_storage(FILE* file){
-    storage *new = malloc(sizeof(storage));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
-    }
-    next_semi(file);                      //case vide
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u[i] = fgetc(file);
-    }                                     //code iden 1
-    next_semi(file);
-    next_hash(file);
-    for(int i = 0; i<6; i++){
-        new->code_st [i] = fgetc(file);
-    }                                     //code iden 2
-    next_semi(file);                   
-
-    next_semi(file);                      //case vide
-
-    fscanf(file, "%f", new->fuite);       //fuites
-    next_line(file);
-    return new;
-}
-
-source *remplir_source(FILE* file){
-    source *new = malloc(sizeof(source));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
-    }
-    next_semi(file);                      //case vide
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_w[i] = fgetc(file);
-    }                                     //code iden 1
-    next_semi(file);
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u [i] = fgetc(file);
-    }                                     //code iden 2
-    next_semi(file);               
-
-    fscanf(file, "%d", new->capa_max); //capa max
-    next_semi(file);
-
-    fscanf(file, "%f", new->fuite);       //fuites
-    next_line(file);
-    return new;
-}
-
-int empty(const char *s) {
+int empty(const char *s){
     return s == NULL || strcmp(s, "-") == 0;
 }
 
-int code_len(const char *s) {
+int code_len(const char *s){
     const char *p = strchr(s, '#');
     if (!p) return 0;
     return strlen(p + 1);
 }
 
-int detect_type(char *line) {
+int detect_type(char *line){
     char *col[5] = {0};
     int i = 0;
 
-    char *tok = strtok(line, ";");
-    while (tok && i < 5) {
-        col[i++] = tok;
-        tok = strtok(NULL, ";");
+    char *piece = strtok(line, ";");
+    while (piece && i < 5) {
+        col[i++] = piece;
+        piece = strtok(NULL, ";");
     }
 
     int l1 = empty(col[0]) ? 0 : code_len(col[0]);
