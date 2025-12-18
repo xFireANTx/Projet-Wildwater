@@ -2,75 +2,53 @@
 #define BASIC_FUNCTIONS_H_
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+//arbres
 
-typedef struct arbre{
-    char* identifiant;
-    struct arbre *fg;
-    struct arbre *fd;
-}Arbre;
-
-Arbre *rotation_droite(Arbre* a);
-Arbre *rotation_gauche(Arbre* a);
-Arbre *rotation_droite_gauche(Arbre *a);
-Arbre *rotation_gauche_droite(Arbre *a);
-
-
-typedef struct Source{
-    
-    char code_w[10];
-    char code_u[10];
-    int capa_max;
+//traitement
+typedef struct Infra{
+    int type;
+    char code_usine[11];
+    char code_precedent[11];
+    char code_actuel[11];
     float fuite;
-}source;
-source *remplir_source(FILE* file);
+    float flux; // pas besoin de capa max
+}infra;
 
-typedef struct Usine{
+typedef struct Racine{
+    char code_usine[11];
+    float flux;
+    struct Arbres_fuites *premierf;
+    struct Arbres_fuites *suivantf;
+}racine;
 
-    char code_u[10];
+typedef struct Arbres_fuites{
+    infra *structure;
+    struct Arbres_fuites *premierf;
+    struct Arbres_fuites *suivantf;
+}arbres_fuites;
 
-    int capa_max;
+typedef struct Arbre{
+    racine *usine; //pour trier l arbre utilise arbre->racine->code usine       
+    struct Arbre *fg;
+    struct Arbre *fd;
+}arbre;
 
-}usine;
-usine *remplir_usine(FILE* file);
-
-typedef struct Storage{
-
-    char code_u[10];
-    char code_st[6];
-
-    float fuite;
-}storage;
-storage *remplir_storage(FILE* file);
-
-typedef struct Jonction{
-    char code_u[10];
-    char code_st[6];
-    char code_j[9];
-
-    float fuite;
-}jonction;
-jonction *remplir_jonction(FILE* file);
-
-typedef struct Service{
-    char code_u[10];
-    char code_j[9];
-    char code_s[9];
-
-    float fuite;
-}service;
-service *remplir_service(FILE* file);
-
-typedef struct Menage{
-    char code_u[10];
-    char code_s[9];
-    char code_m[10];
-
-    float fuite;
-}menage;
-menage *remplir_menage(FILE* file);
+arbre *rotation_droite(arbre* a);
+arbre *rotation_gauche(arbre* a);
+arbre *rotation_droite_gauche(arbre *a);
+arbre *rotation_gauche_droite(arbre *a);
 
 
-int recup_type(FILE* file); // 1 = source, 2 = usine, 3 = stockage, 4 = jonction, 5 = service, 6 = menages
+infra *remplir_infra(char *line, int type);         //marche pour 3,4,5,6 jsp si je veut utiliser la meme chose pour usine et source n est pas utile
+void freeTree(arbres_fuites *node);
+void addChild(arbres_fuites *parent, arbres_fuites *child);
+arbres_fuites *createNode(infra *new);
+
+//lecture fichier
+int detect_type(char* line); // 1 = source, 2 = usine, 3 = stockage, 4 = jonction, 5 = service, 6 = menages
+int code_len(const char *s);
+int empty(const char *s);
 void next_hash(FILE* file);
 void next_semi(FILE* file);
 void next_line(FILE* file);

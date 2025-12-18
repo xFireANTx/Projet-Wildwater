@@ -1,318 +1,184 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "basic_functions.h"
+#include <string.h>
 
-typedef struct arbre{
-    char* identifiant;
-    struct arbre *fg;
-    struct arbre *fd;
-}Arbre;
-
-Arbre *rotation_droite(Arbre* a){
-    Arbre *b = a->fg;
+//arbres
+arbre *rotation_droite(arbre* a){
+    arbre *b = a->fg;
     a->fg = b->fg;
     b->fd = a;
     return b;
 }
 
-Arbre *rotation_gauche(Arbre* a){
-    Arbre *b = a->fd;
+arbre *rotation_gauche(arbre* a){
+    arbre *b = a->fd;
     a->fd = b->fd;
     b->fg = a;
     return b;
 }
 
-Arbre *rotation_droite_gauche(Arbre *a){
+arbre *rotation_droite_gauche(arbre *a){
     a->fd = rotation_droite(a->fd);
     return rotation_gauche(a);
 }
 
-Arbre *rotation_gauche_droite(Arbre *a){
+arbre *rotation_gauche_droite(arbre *a){
     a->fg = rotation_gauche(a->fg);
     return rotation_droite(a);
 }
 
-/*affichage/recup csv
 
-junction = branchement 1 des tuyaux (stockage -> jonction) (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);        ;fuite)
-service = branchement 2   (jonction -> service)            (nom #code usine (10);nom #code jonction(9);nom #code service(9) ;        ;fuite)
-menage/cust = branchement 3 des tuyaux (service -> menage) (nom #code usine (10);nom #code service(9) ;nom #code menage(10) ;        ;fuite)
-well/ well field/ fountain/ resurgence = source            (                    ;nom #code source(10) ;nom #code usine(10)  ;capa_max;fuite)
-storage = endroit de stockage                              (                    ;nom #code usine (10) ;nom #code stockage(6);        ;fuite)
-unit/ module/ plant/ = usine                               (                    ;nom #code usine (10) ;                     ;capa_max;     )
+arbres_fuites *createNode(infra *new){
+    if(new==NULL){exit(1);}
+    arbres_fuites *node = malloc(sizeof(arbres_fuites));
+    if(node == NULL){exit (1);}
+    node->structure = new;
+    if(new->type == 1){
+        strncpy(node->structure->code_usine, new->code_precedent, sizeof(node->structure->code_usine) - 1);
+        node->structure->code_usine[sizeof(node->structure->code_usine) - 1] = '\0';
+    }
+    else{
+        strncpy(node->structure->code_usine, new->code_usine, sizeof(node->structure->code_usine) - 1);
+        node->structure->code_usine[sizeof(node->structure->code_usine) - 1] = '\0';    
+    }
+    node->premierf = NULL;
+    node->suivantf = NULL;
+    return node;
+}
+
+void addChild(arbres_fuites *parent, arbres_fuites *child){
+    if (parent->premierf == NULL) {
+        parent->premierf = child;
+    } else {
+        arbres_fuites *sibling = parent->premierf;
+        while (sibling->suivantf != NULL) {
+            sibling = sibling->suivantf;
+        }
+        sibling->suivantf = child;
+    }
+}
 
 
-unit/ module/ plant/ = usine 
-(nom + #code;vide;capa_max;vide)*/
-typedef struct Usine{
-    char code_u[10];
-    int capa_max;
-}usine;
 
-usine *remplir_usine(FILE* file){
-    usine *new = malloc(sizeof(usine));
+// Libération mémoire
+void freeTree(arbres_fuites *node){
+    if (node == NULL) return;
+    freeTree(node->premierf);
+    freeTree(node->suivantf);
+    free(node->structure->code_usine);
+    free(node->structure);
+    free(node);
+}
+
+infra *remplir_infra(char *line, int type){
+    infra *new = malloc(sizeof(infra));
     if(new == NULL){ 
         printf("erreur d'allocation memoire");
         exit(1);
     }
+    new->type = type;   
+    char *col[5] = {0};
+    int i = 0;
+    char *piece = strtok(line, ";");
+    while(piece && i < 5){
+        col[i++] = piece;
+        piece = strtok(NULL, ";");
+    }
+        if(type == 3){ //storage
+        col[1] = strchr(col[1], '#');
+        if (!col[1]) return 0;
+        col[1]++;
+        strncpy(new->code_usine, col[1], sizeof(new->code_usine)-1); //la premiere ccase d un storage est vide
+        new->code_usine[sizeof(new->code_usine)-1] = '\0'; 
 
-    next_semi(file);                        //vide
+        strncpy(new->code_precedent, col[1], sizeof(new->code_precedent)-1);
+        new->code_precedent[sizeof(new->code_precedent)-1] = '\0'; 
 
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u[i] = fgetc(file);
-    }                                       //code iden 1
-    next_semi(file);
+        col[2] = strchr(col[2], '#');
+        if (!col[2]) return 0;
+        col[2]++;
+        strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
+        new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
+    }
+    if(type == 4 || type == 5 || type == 6){ // jonction service cust
+        col[0] = strchr(col[0], '#');
+        if (!col[0]) return 0;
+        col[0]++;
+        strncpy(new->code_usine, col[0], sizeof(new->code_usine)-1);
+        new->code_usine[sizeof(new->code_usine)-1] = '\0'; 
 
-    next_semi(file);                        //case vide
+        col[1] = strchr(col[1], '#');
+        if (!col[1]) return 0;
+        col[1]++;
+        strncpy(new->code_precedent, col[1], sizeof(new->code_precedent)-1);
+        new->code_precedent[sizeof(new->code_precedent)-1] = '\0'; 
 
-    fscanf(file, "%d", new->capa_max);      //capa max
-    next_semi(file); 
+        col[2] = strchr(col[2], '#');
+        if (!col[2]) return 0;
+        col[2]++;
+        strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
+        new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
+    }
+    new->fuite = strtof(col[4], NULL);
 
-    next_line(file);                        //case vide
+    new->flux = 0;
     return new;
 }
 
-//junction = branchement 1 des tuyaux 
-//(stockage -> services) (nom + #code usine; nom + code stockage; code jonction; vide; fuite)
-typedef struct Jonction{
-    char code_u[10];
-    char code_st[6];
-    char code_j[9];
-    float fuite;
-}jonction;
+/*recup csv
+junction = (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);        ;fuite)
+service =  (nom #code usine (10);nom #code jonction(9);nom #code service(9) ;        ;fuite)
+menage =   (nom #code usine (10);nom #code service(9) ;nom #code menage(10) ;        ;fuite)
+source =   (                    ;nom #code source(10) ;nom #code usine(10)  ;capa_max;fuite)
+storage =  (                    ;nom #code usine (10) ;nom #code stockage(6);        ;fuite)
+usine =    (                    ;nom #code usine (10) ;                     ;capa_max;     )*/
 
-jonction *remplir_jonction(FILE* file){
-    jonction *new = malloc(sizeof(jonction));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
-    }
-
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u[i] = fgetc(file);
-    }                                     //code iden 1
-    next_semi(file);
-
-    next_hash(file);
-    for(int i = 0; i<6; i++){
-        new->code_st[i] = fgetc(file);
-    }                                     //code iden 2
-    next_semi(file);
-
-    next_hash(file);
-    for(int i = 0; i<9; i++){
-        new->code_j[i] = fgetc(file);
-    }                                     //code iden 3
-    next_semi(file);
-
-    next_semi(file);                      //case vide
-
-    fscanf(file, "%f", new->fuite);       //fuites
-    next_line(file);
-    return new;
+int empty(const char *s){
+    return s == NULL || strcmp(s, "-") == 0;
 }
 
-//service = branchement 2 des tuyaux 
-//(service -> menage) (nom + #code usine; nom + code jonction; code service; vide; fuite)
-typedef struct Service{
-    char code_u[10];
-    char code_j[9];
-    char code_s[9];
-    float fuite;
-}service;
-
-service *remplir_service(FILE* file){
-    service *new = malloc(sizeof(service));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
-    }
-
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u[i] = fgetc(file);
-    }                                     //code iden 1
-    next_semi(file);
-
-    next_hash(file);
-    for(int i = 0; i<9; i++){
-        new->code_j [i] = fgetc(file);
-    }                                     //code iden 2
-    next_semi(file);
-
-    next_hash(file);
-    for(int i = 0; i<9; i++){
-        new->code_s[i] = fgetc(file);
-    }                                     //code iden 3
-    next_semi(file);
-
-    next_semi(file);                      //case vide
-
-    fscanf(file, "%f", new->fuite);       //fuites
-    next_line(file);
-    return new;
+int code_len(const char *s){
+    const char *p = strchr(s, '#');
+    if (!p) return 0;
+    return strlen(p + 1);
 }
 
-typedef struct Menage{
-    char code_u[10];
-    char code_s[9];
-    char code_m[10];
-    float fuite;
-}menage;
+int detect_type(char *line){
+    char *col[5] = {0};
+    int i = 0;
 
-menage *remplir_menage(FILE* file){
-    menage *new = malloc(sizeof(menage));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
+    char *piece = strtok(line, ";");
+    while (piece && i < 5) {
+        col[i++] = piece;
+        piece = strtok(NULL, ";");
     }
 
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u[i] = fgetc(file);
-    }                                     //code iden 1
-    next_semi(file);
+    int l1 = empty(col[0]) ? 0 : code_len(col[0]);
+    int l2 = empty(col[1]) ? 0 : code_len(col[1]);
+    int l3 = empty(col[2]) ? 0 : code_len(col[2]);
+    int c4 = !empty(col[3]);
+    if(l1 == 0 && l2 == 9 && l3 == 9 && c4) //source
+        return 1;
 
-    next_hash(file);
-    for(int i = 0; i<9; i++){
-        new->code_s [i] = fgetc(file);
-    }                                     //code iden 2
-    next_semi(file);
-    
-    next_hash(file);
-    for(int i = 0; i<9; i++){
-        new->code_m[i] = fgetc(file);
-    }                                     //code iden 3
-    next_semi(file);
-    
-    next_semi(file);                      //case vide
+    if(l1 == 0 && l2 == 9 && l3 == 0 && c4) //usine
+        return 2;
 
-    fscanf(file, "%f", new->fuite);       //fuites
-    next_line(file);
-    return new;
+    if(l1 == 0 && l2 == 9 && l3 == 5) // storage
+        return 3;
+
+    if(l1 == 9 && l2 == 5 && l3 == 8) // jonction
+        return 4;
+
+    if(l1 == 9 && l2 == 8 && l3 == 9) // service
+        return 5;
+
+    if(l1 == 9 && l2 == 9 && l3 == 10) // menage
+        return 6;
+    return 0;
 }
 
-//storage = endroit de stockage 
-//(usine -> stockage) (nom + #code usine; nom + #code stockage; vide; fuite)
-typedef struct Storage{
-    char code_u[10];
-    char code_st[6];
-    float fuite;
-}storage;
 
-storage *remplir_storage(FILE* file){
-    storage *new = malloc(sizeof(storage));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
-    }
-    next_semi(file);                      //case vide
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u[i] = fgetc(file);
-    }                                     //code iden 1
-    next_semi(file);
-    next_hash(file);
-    for(int i = 0; i<6; i++){
-        new->code_st [i] = fgetc(file);
-    }                                     //code iden 2
-    next_semi(file);                   
-
-    next_semi(file);                      //case vide
-
-    fscanf(file, "%f", new->fuite);       //fuites
-    next_line(file);
-    return new;
-}
-
-//source/ well/ well field/ fountain/ resurgence = la source d'eau 
-//(source -> usine) (nom + #code source; nom + #code usine; capa_max; fuite)
-typedef struct Source{
-    char code_w[10];
-    char code_u[10];
-    int capa_max;
-    float fuite;
-}source;
-
-source *remplir_source(FILE* file){
-    source *new = malloc(sizeof(source));
-    if(new == NULL){ 
-        printf("erreur d'allocation memoire");
-        exit(1);
-    }
-    next_semi(file);                      //case vide
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_w[i] = fgetc(file);
-    }                                     //code iden 1
-    next_semi(file);
-    next_hash(file);
-    for(int i = 0; i<10; i++){
-        new->code_u [i] = fgetc(file);
-    }                                     //code iden 2
-    next_semi(file);               
-
-    fscanf(file, "%d", new->capa_max); //capa max
-    next_semi(file);
-
-    fscanf(file, "%f", new->fuite);       //fuites
-    next_line(file);
-    return new;
-}
-
-//lecture fichier csv
-int recup_type(FILE* file){       //indique quel type d infra est stocké dans la ligne et remet le curseur au debut de la ligne
-    if(file == NULL){exit (1);}   //j ai pas encore mis les valeurs correspondantes
-    int ch;
-    int count_hash = 0; //compteur (#)
-    int count_semi = 0; //compteur (;)
-    int col2 = 0;      //compteur (longueur code colonne 2)
-    int col3 = 0;      //compteur (longueur code colonne 3)
-    long pos = ftell(file);
-    while(ch = getc(file) != EOF && ch != '\n'){
-        if(ch == '#'){
-            count_hash++;
-        }
-        if(ch == ';'){
-            count_semi++;
-        }
-        if(count_hash == 2 && count_semi == 1){
-            col2++;
-        }
-        if(count_hash == 2 && count_semi == 2){
-            col3++;
-        }
-    }
-    fseek(file, pos, SEEK_SET); // SEEK_SET -> fseek cherche par rapport au debut du doc (SEEK_CUR; a partir du curseur/SEEK_END; a partir de la fin;)
-    if(count_hash == 1){
-        return 2; //valeur pour usine
-    }
-    if(count_hash == 2){
-        if(col3 == 6){
-            return 3; //valeur pour stockage
-        }
-        if(col3 == 10){
-            return 1; //valeur pour source
-        }
-    }
-    if(count_hash == 3){
-        if(col2 == 6){
-            return 4; //valeur pour jonction
-        }
-        if(col2 == 9){
-            if(col3 == 10){
-                return 6; //valeur pour menage
-                }
-            if(col3 == 9){
-                return 5; //valeur pour service
-            }
-        }
-    }
-    printf("erreur de categorisation");
-    exit(1); 
-}
 
 void next_hash(FILE* file){         //deplace curseur vers prochain (#) (pour skip les noms)
     if(file == NULL){exit(1);}
