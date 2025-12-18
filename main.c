@@ -59,18 +59,19 @@ void afficher_noeud_fuites(const arbres_fuites *n) {
 
 void main(){
     FILE *fichier = fopen("test.csv", "r");
-    FILE *flux = fopen("histo_reel.dat", "r");
+    FILE *flux = fopen("histo_real.dat", "r");
     int boucle_principale = 0;   int type = 0;
     char ligne[256];  char tmp[256];
     arbres_fuites *p1;
     infra *p2;
-    arbre *root; // premiere node avl usine
-    while(fgets(ligne, sizeof(ligne), flux)){
-        strcpy(tmp, ligne);          //  nom #code usine 11
+    arbre *root = NULL; // premiere node avl usine
+    //while(fgets(ligne, sizeof(ligne), flux)){
+        fgets(ligne, sizeof(ligne), flux);
+        strcpy(tmp, ligne);          //  nom #code usine 11; flux reel usine
         root = ajouter_avl_flux(root, tmp);
         afficherAVL(root,0);
-    }
-    afficherAVL(root, 0);
+    //}
+    //afficherAVL(root, 0);
     /*while(fgets(ligne, sizeof(ligne), fichier)){
         strcpy(tmp, ligne);
         int type = detect_type(tmp);
@@ -104,8 +105,8 @@ void main(){
             break;
         }
     } */   
-    fclose(fichier);
-    fclose(flux);
+    //fclose(fichier);
+    //fclose(flux);
 }
 
 

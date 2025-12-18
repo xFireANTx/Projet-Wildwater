@@ -33,12 +33,14 @@ arbre *rotation_gauche_droite(arbre *a){
 }
 
 racine *remplir_racine(char *ligne){
+    printf("le");
     racine *nouveau = malloc(sizeof(racine));
     if (!nouveau) return NULL;
         char *col[2] = {0};
     int i = 0;
     char *tmp = ligne;
     char *piece = strtok(tmp, ";");
+    printf("boubou");
     while(piece && i < 2){
         col[i++] = piece;
         piece = strtok(NULL, ";");
@@ -48,8 +50,9 @@ racine *remplir_racine(char *ligne){
     col[0]++;
     strncpy(nouveau->code_usine, col[0], sizeof(nouveau->code_usine)-1);
     nouveau->code_usine[sizeof(nouveau->code_usine) - 1] = '\0';            //code usine apres le #
-
+    printf("dou");
     nouveau->flux = strtof(col[1], NULL);
+    printf("la?\n");
     nouveau->premierf = NULL;
     nouveau->suivantf = NULL;
     return nouveau;
@@ -115,7 +118,8 @@ arbre *equilibrer(arbre *n){
 arbre *ajouter_avl_flux(arbre *node, char *ligne){
     char *temp = ligne;
     arbre *nouveau = creer_noeud_arbre(temp);
-    if(nouveau == NULL){exit (1);}
+    if(nouveau == NULL){
+        printf("pas nouveau");exit (1);}
     if (node == NULL) {
         return nouveau;
     }
