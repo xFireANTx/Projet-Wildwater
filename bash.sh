@@ -1,15 +1,14 @@
 #!/bin/bash
 
 ##Le processus des 3 fonctions servant à générer les fichiers histo.dat sont similaire. On remarque que chaque histo demandé représente une étape du circuit et que selon 
-##l'étape, on a un motif différent de '-';txt;'-'etc. Ainsi, on effectue un filtrage en colonne pour récupérer les informations dont on a besoin et on trie le tout
+##l'étape, on a un motif différent de '-';txt;'-'etc. Ainsi, on effectue un filtrage en colonne pour récupérer les informations dont on a besoin
 ##Finalement on effectue les opérations nécessaire en c sur le fichier triés et filtrés
 
 volume_max(){
 	local source="$1"
-	awk -F';' '$3 == "-"' "$source" |cut -d';' -f2,4 | sort -t';' -k1,1 -d -r > temp_volume
+	awk -F';' '$3 == "-"' "$source" |cut -d';' -f2,4  > temp_volume
 	
-	gcc -o exe volume.c
-	./exe temp_volume out_volume
+	./exe temp_volume out_volume histo max
 	
 	cat out_volume
 	rm temp_volume out_volume
@@ -17,10 +16,9 @@ volume_max(){
 
 volume_source(){
 	local source="$1"
-	awk -F';' '$1 == "-"' "$source" | awk -F';' '$3 != "-"' | awk -F';' '$4 !="-"' | cut -d';' -f3,4 |sort -t';' -k1,1 -d -r > temp_source
+	awk -F';' '$1 == "-"' "$source" | awk -F';' '$3 != "-"' | awk -F';' '$4 !="-"' | cut -d';' -f3,4  > temp_source
 	
-	gcc -o exe somme_source.c
-	./exe temp_source out_source
+	./exe temp_source out_source histo src
 	
 	cat out_source
 	rm temp_source  out_source
@@ -28,10 +26,9 @@ volume_source(){
 
 volume_reel(){
 	local source="$1"
-	awk -F';' '$1 == "-"' "$source" | awk -F';' '$3 != "-"' | awk -F';' '$4 !="-"' | cut -d';' -f3-5 |sort -t';' -k1,1 -d -r > temp_reel
+	awk -F';' '$1 == "-"' "$source" | awk -F';' '$3 != "-"' | awk -F';' '$4 !="-"' | cut -d';' -f3-5  > temp_reel
 	
-	gcc -o exe somme_reel.c
-	./exe temp_reel out_reel
+	./exe temp_reel out_reel histo reel
 	
 	cat out_reel
 	rm temp_reel out_reel
@@ -60,10 +57,10 @@ case $histo_leaks in
 	'src')  Nom_colonne="volume source(M.m3/an)" 
 		donnee=$(volume_source "$fichier_source")
 		;;
-	'real') Nom_colonne="volume reel(M.m3/an)" 
+	'reel') Nom_colonne="volume reel(M.m3/an)" 
 		donnee=$(volume_reel "$fichier_source")
 		;;
-	*) 	echo "Commande $mode incorrecte, 'max' ou 'src' ou 'real'sont attendue en 3ème argument." 
+	*) 	echo "Commande $mode incorrecte, 'max' ou 'src' ou 'reel'sont attendue en 3ème argument." 
 		exit 1
 		;;
 	esac
