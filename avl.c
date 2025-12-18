@@ -72,24 +72,35 @@ arbre *equilibrer(arbre *n){
     return n; // déjà équilibré
 }
 
-arbre *ajouter_avl(arbre *node, char *code_usine[11]){
-
+arbre *ajouter_avl_flux(arbre *node, char *ligne){
+    char *col[2] = {0};
+    int i = 0;
+    char *piece = strtok(ligne, ";");
+    while(piece && i < 2){
+        col[i++] = piece;
+        piece = strtok(NULL, ";");
+    }
+    col[0] = strchr(col[0], '#');
+    if (!col[0]) return 0;
+    col[0]++;
     if (node == NULL) {
         arbre *nouveau = malloc(sizeof(arbre));
         if (!nouveau) return NULL; 
-        strncpy(nouveau->usine->code_usine, code_usine, sizeof(nouveau->usine->code_usine) - 1);
+        strncpy(nouveau->usine->code_usine, col[0], sizeof(nouveau->usine->code_usine) - 1);
         nouveau->usine->code_usine[sizeof(nouveau->usine->code_usine) - 1] = '\0';  
         nouveau->fg = nouveau->fd = NULL;
         return nouveau;
     }
 
-    if(strcmp(code_usine, node->usine->code_usine) < 0){
-        node->fg = ajouter_avl(node->fg, code_usine);
+    if(strcmp(col[0], node->usine->code_usine) < 0){
+        node->fg = ajouter_avl(node->fg, col[0]);
     }
-    else if(strcmp(code_usine, node->usine->code_usine) > 0){
-        node->fd = ajouter_avl(node->fd, code_usine);
+    else if(strcmp(col[0], node->usine->code_usine) > 0){
+        node->fd = ajouter_avl(node->fd, col[0]);
     }
     else{
+
+        node->usine->flux = strtof(col[1], NULL);
         return node; // pas de doublons
     }
     return equilibrer(node);

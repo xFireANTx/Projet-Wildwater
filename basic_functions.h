@@ -16,18 +16,18 @@ typedef struct Infra{
     float flux; // pas besoin de capa max
 }infra;
 
+typedef struct Arbres_fuites{
+    infra *structure;
+    struct Arbres_fuites *premierf;
+    struct Arbres_fuites *suivantf;
+}arbres_fuites;
+
 typedef struct Racine{
     char code_usine[11];
     float flux;
     struct Arbres_fuites *premierf;
     struct Arbres_fuites *suivantf;
 }racine;
-
-typedef struct Arbres_fuites{
-    infra *structure;
-    struct Arbres_fuites *premierf;
-    struct Arbres_fuites *suivantf;
-}arbres_fuites;
 
 typedef struct Arbre{
     racine *usine; //pour trier l arbre utilise arbre->racine->code usine       
