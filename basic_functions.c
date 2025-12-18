@@ -85,7 +85,7 @@ infra *remplir_infra(char *line, int type){
         col[i++] = piece;
         piece = strtok(NULL, ";");
     }
-        if(type == 3){
+        if(type == 3){ //storage
         col[1] = strchr(col[1], '#');
         if (!col[1]) return 0;
         col[1]++;
@@ -101,7 +101,7 @@ infra *remplir_infra(char *line, int type){
         strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
         new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
     }
-    if(type == 4 || type == 5 || type == 6){
+    if(type == 4 || type == 5 || type == 6){ // jonction service cust
         col[0] = strchr(col[0], '#');
         if (!col[0]) return 0;
         col[0]++;
@@ -120,14 +120,9 @@ infra *remplir_infra(char *line, int type){
         strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
         new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
     }
-    new->capa_max = (int)strtol(col[3], NULL, 10);
+    new->fuite = strtof(col[4], NULL);
 
-    if(new->type != 2){
-        new->fuite = strtof(col[4], NULL);
-    }
-    else{
-        new->fuite = 0;
-    }
+    new->flux = 0;
     return new;
 }
 

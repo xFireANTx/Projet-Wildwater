@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 //arbres
 
 //traitement
@@ -12,9 +11,16 @@ typedef struct Infra{
     char code_usine[11];
     char code_precedent[11];
     char code_actuel[11];
-    int capa_max;
     float fuite;
+    float flux; // pas besoin de capa max
 }infra;
+
+typedef struct Racine{
+    char code_usine[11];
+    float flux;
+    struct Arbres_fuites *premierf;
+    struct Arbres_fuites *suivantf;
+}racine;
 
 typedef struct Arbres_fuites{
     infra *structure;
@@ -23,7 +29,7 @@ typedef struct Arbres_fuites{
 }arbres_fuites;
 
 typedef struct Arbre{
-    arbres_fuites *arbre_fuites; //pour trier l arbre utilise arbre->arbre_fuites->infra->code_usine
+    racine *usine; //pour trier l arbre utilise arbre->racine->code usine       
     struct Arbre *fg;
     struct Arbre *fd;
 }arbre;
