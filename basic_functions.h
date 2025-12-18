@@ -2,6 +2,7 @@
 #define BASIC_FUNCTIONS_H_
 #include <stdio.h>
 #include <stdlib.h>
+#include "avl.h"
 #include <string.h>
 //arbres
 
@@ -33,12 +34,6 @@ typedef struct Arbre{
     struct Arbre *fg;
     struct Arbre *fd;
 }arbre;
-
-arbre *rotation_droite(arbre* a);
-arbre *rotation_gauche(arbre* a);
-arbre *rotation_droite_gauche(arbre *a);
-arbre *rotation_gauche_droite(arbre *a);
-
 
 infra *remplir_infra(char *line, int type);         //marche pour 3,4,5,6 jsp si je veut utiliser la meme chose pour usine et source n est pas utile
 void freeTree(arbres_fuites *node);

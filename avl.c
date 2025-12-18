@@ -1,126 +1,96 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "basic_functions.h"
+#include "avl.h"
+#include <string.h>
 
-int max(int a, int b) {
-    return (a > b) ? a : b;
+//arbres
+arbre *rotation_droite(arbre *a){
+    arbre *b = a->fg;
+    arbre *temp = b->fd;
+    b->fd = a;
+    a->fg = temp;
+    return b;
 }
 
-int get_hauteur(Arbre* n) {
-    if (n == NULL) return 0;
-    return n->hauteur;
+
+arbre *rotation_gauche(arbre* a){
+    arbre *b = a->fd;
+    arbre *temp = b->fg;
+    b->fg = a;
+    a->fd = temp;
+    return b;
 }
 
-int get_equilibre(Arbre* n) {
-    if (n == NULL) return 0;
-    return get_hauteur(n->fg) - get_hauteur(n->fd);
-}
-
-// --- Rotations (Logique standard) ---
-
-Arbre *rotation_droite(Arbre* y) {
-    Arbre *x = y->fg;
-    Arbre *T2 = x->fd;
-
-    x->fd = y;
-    y->fg = T2;
-
-    y->hauteur = max(get_hauteur(y->fg), get_hauteur(y->fd)) + 1;
-    x->hauteur = max(get_hauteur(x->fg), get_hauteur(x->fd)) + 1;
-
-    return x;
-}
-
-Arbre *rotation_gauche(Arbre* x) {
-    Arbre *y = x->fd;
-    Arbre *T2 = y->fg;
-
-    y->fg = x;
-    x->fd = T2;
-
-    x->hauteur = max(get_hauteur(x->fg), get_hauteur(x->fd)) + 1;
-    y->hauteur = max(get_hauteur(y->fg), get_hauteur(y->fd)) + 1;
-
-    return y;
-}
-
-Arbre *rotation_droite_gauche(Arbre *a) {
+arbre *rotation_droite_gauche(arbre *a){
     a->fd = rotation_droite(a->fd);
     return rotation_gauche(a);
 }
 
-Arbre *rotation_gauche_droite(Arbre *a) {
+arbre *rotation_gauche_droite(arbre *a){
     a->fg = rotation_gauche(a->fg);
     return rotation_droite(a);
 }
 
-// --- Gestion Arbre ---
+int hauteur(arbre *n){
+    if (n == NULL)
+        return 0;
 
-Arbre* creer_noeud(char* id) {
-    Arbre* node = (Arbre*)malloc(sizeof(Arbre));
-    if (node == NULL) exit(1); // Sécurité alloc
-    
-    node->identifiant = strdup(id);
-    node->fg = NULL;
-    node->fd = NULL;
-    node->hauteur = 1;
-    node->capacity = 0;
-    node->vol_src = 0;
-    node->vol_real = 0;
-    return node;
+    int hg = hauteur(n->fg);
+    int hd = hauteur(n->fd);
+
+    return 1 + (hg > hd ? hg : hd);
 }
 
-Arbre* insertion_avl(Arbre* node, char* id, long cap, double v_src, double v_real) {
-    // 1. Insertion ABR classique
-    if (node == NULL)
-        return creer_noeud(id);
+int facteur_equilibre(arbre *n){
+    if (n == NULL)
+        return 0;
 
-    int cmp = strcmp(id, node->identifiant);
+    return hauteur(n->fg) - hauteur(n->fd);
+}
 
-    if (cmp < 0)
-        node->fg = insertion_avl(node->fg, id, cap, v_src, v_real);
-    else if (cmp > 0)
-        node->fd = insertion_avl(node->fd, id, cap, v_src, v_real);
-    else {
-        // Le noeud existe : on cumule les données
-        node->capacity += cap;
-        node->vol_src += v_src;
-        node->vol_real += v_real;
-        return node;
+arbre *equilibrer(arbre *n){
+    if (n == NULL)
+        return NULL;
+    int balance = facteur_equilibre(n);
+
+    if (balance > 1 && facteur_equilibre(n->fg) >= 0){
+        return rotation_droite(n);
     }
 
-    // 2. Mise à jour hauteur
-    node->hauteur = 1 + max(get_hauteur(node->fg), get_hauteur(node->fd));
-
-    // 3. Equilibrage
-    int balance = get_equilibre(node);
-
-    if (balance > 1 && strcmp(id, node->fg->identifiant) < 0)
-        return rotation_droite(node);
-
-    if (balance < -1 && strcmp(id, node->fd->identifiant) > 0)
-        return rotation_gauche(node);
-
-    if (balance > 1 && strcmp(id, node->fg->identifiant) > 0)
-        return rotation_gauche_droite(node);
-
-    if (balance < -1 && strcmp(id, node->fd->identifiant) < 0)
-        return rotation_droite_gauche(node);
-
-    return node;
-}
-
-void parcours_infixe_inverse(Arbre* a, FILE* sortie) {
-    if (a != NULL) {
-        parcours_infixe_inverse(a->fd, sortie); // Droite (Z->A)
-        fprintf(sortie, "%s;%ld;%f;%f\n", a->identifiant, a->capacity, a->vol_src, a->vol_real);
-        parcours_infixe_inverse(a->fg, sortie); // Gauche
+    if (balance > 1 && facteur_equilibre(n->fg) < 0){
+    return rotation_gauche_droite(n);
     }
+
+    if (balance < -1 && facteur_equilibre(n->fd) <= 0){
+        return rotation_gauche(n);
+    }
+    if (balance < -1 && facteur_equilibre(n->fd) > 0){
+        return rotation_droite_gauche(n);
+    }
+
+    return n; // déjà équilibré
 }
 
-void liberer_arbre(Arbre* a) {
-    if (a != NULL) {
-        liberer_arbre(a->fg);
-        liberer_arbre(a->fd);
-        free(a->identifiant);
-        free(a);
+arbre *ajouter_avl(arbre *node, char *code_usine[11]){
+
+    if (node == NULL) {
+        arbre *nouveau = malloc(sizeof(arbre));
+        if (!nouveau) return NULL; 
+        strncpy(nouveau->usine->code_usine, code_usine, sizeof(nouveau->usine->code_usine) - 1);
+        nouveau->usine->code_usine[sizeof(nouveau->usine->code_usine) - 1] = '\0';  
+        nouveau->fg = nouveau->fd = NULL;
+        return nouveau;
     }
+
+    if (code_usine < node->usine->code_usine)
+        node->fg = ajouter_avl(node->fg, code_usine);
+    else if (code_usine > node->usine->code_usine)
+        node->fd = ajouter_avl(node->fd, code_usine);
+    else
+        return node; // pas de doublons
+
+    return equilibrer(node);
 }
+
+
