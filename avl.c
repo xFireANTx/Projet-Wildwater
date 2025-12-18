@@ -83,13 +83,15 @@ arbre *ajouter_avl(arbre *node, char *code_usine[11]){
         return nouveau;
     }
 
-    if (code_usine < node->usine->code_usine)
+    if(strcmp(code_usine, node->usine->code_usine) < 0){
         node->fg = ajouter_avl(node->fg, code_usine);
-    else if (code_usine > node->usine->code_usine)
+    }
+    else if(strcmp(code_usine, node->usine->code_usine) > 0){
         node->fd = ajouter_avl(node->fd, code_usine);
-    else
+    }
+    else{
         return node; // pas de doublons
-
+    }
     return equilibrer(node);
 }
 
