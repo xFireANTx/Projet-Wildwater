@@ -5,16 +5,6 @@
 #include <string.h>
 
 //arbres
-typedef struct arbre{
-    arbres_fuites *arbre_fuites; //pour trier l arbre utilise arbre->arbre_fuites->infra->code_usine
-    struct arbre *fg;
-    struct arbre *fd;
-}Arbre;
-
-Arbre *rotation_droite(Arbre* a);
-Arbre *rotation_gauche(Arbre* a);
-Arbre *rotation_droite_gauche(Arbre *a);
-Arbre *rotation_gauche_droite(Arbre *a);
 
 //traitement
 typedef struct Infra{
@@ -26,13 +16,25 @@ typedef struct Infra{
     float fuite;
 }infra;
 
-typedef struct Arbre_fuites{
+typedef struct Arbres_fuites{
     infra *structure;
-    struct Arbre_fuites *premierf;
-    struct Arbre_fuites *suivantf;
+    struct Arbres_fuites *premierf;
+    struct Arbres_fuites *suivantf;
 }arbres_fuites;
 
-infra *remplir_infra(char *line, int type);
+typedef struct Arbre{
+    arbres_fuites *arbre_fuites; //pour trier l arbre utilise arbre->arbre_fuites->infra->code_usine
+    struct Arbre *fg;
+    struct Arbre *fd;
+}arbre;
+
+arbre *rotation_droite(arbre* a);
+arbre *rotation_gauche(arbre* a);
+arbre *rotation_droite_gauche(arbre *a);
+arbre *rotation_gauche_droite(arbre *a);
+
+
+infra *remplir_infra(char *line, int type);         //marche pour 3,4,5,6 jsp si je veut utiliser la meme chose pour usine et source n est pas utile
 void freeTree(arbres_fuites *node);
 void addChild(arbres_fuites *parent, arbres_fuites *child);
 arbres_fuites *createNode(infra *new);

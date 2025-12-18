@@ -4,37 +4,44 @@
 #include <string.h>
 
 //arbres
-Arbre *rotation_droite(Arbre* a){
-    Arbre *b = a->fg;
+arbre *rotation_droite(arbre* a){
+    arbre *b = a->fg;
     a->fg = b->fg;
     b->fd = a;
     return b;
 }
 
-Arbre *rotation_gauche(Arbre* a){
-    Arbre *b = a->fd;
+arbre *rotation_gauche(arbre* a){
+    arbre *b = a->fd;
     a->fd = b->fd;
     b->fg = a;
     return b;
 }
 
-Arbre *rotation_droite_gauche(Arbre *a){
+arbre *rotation_droite_gauche(arbre *a){
     a->fd = rotation_droite(a->fd);
     return rotation_gauche(a);
 }
 
-Arbre *rotation_gauche_droite(Arbre *a){
+arbre *rotation_gauche_droite(arbre *a){
     a->fg = rotation_gauche(a->fg);
     return rotation_droite(a);
 }
 
 
-arbres_fuites *createNode(char code[10]){
+arbres_fuites *createNode(infra *new){
+    if(new==NULL){exit(1);}
     arbres_fuites *node = malloc(sizeof(arbres_fuites));
     if(node == NULL){exit (1);}
-    strncpy(node->code_usine, code, sizeof(node->code_usine) - 1);
-    node->code_usine[sizeof(node->code_usine) - 1] = '\0';
-    node->structure = NULL;
+    node->structure = new;
+    if(new->type == 1){
+        strncpy(node->structure->code_usine, new->code_precedent, sizeof(node->structure->code_usine) - 1);
+        node->structure->code_usine[sizeof(node->structure->code_usine) - 1] = '\0';
+    }
+    else{
+        strncpy(node->structure->code_usine, new->code_usine, sizeof(node->structure->code_usine) - 1);
+        node->structure->code_usine[sizeof(node->structure->code_usine) - 1] = '\0';    
+    }
     node->premierf = NULL;
     node->suivantf = NULL;
     return node;
@@ -52,12 +59,14 @@ void addChild(arbres_fuites *parent, arbres_fuites *child){
     }
 }
 
+
+
 // Libération mémoire
 void freeTree(arbres_fuites *node){
     if (node == NULL) return;
     freeTree(node->premierf);
     freeTree(node->suivantf);
-    free(node->code_usine);
+    free(node->structure->code_usine);
     free(node->structure);
     free(node);
 }
@@ -68,6 +77,7 @@ infra *remplir_infra(char *line, int type){
         printf("erreur d'allocation memoire");
         exit(1);
     }
+    new->type = type;   
     char *col[5] = {0};
     int i = 0;
     char *piece = strtok(line, ";");
@@ -75,34 +85,44 @@ infra *remplir_infra(char *line, int type){
         col[i++] = piece;
         piece = strtok(NULL, ";");
     }
-    if(!empty(col[0])){
-        strncpy(new->code_usine, col[0], sizeof(new->code_usine)-1);
+        if(type == 3){
+        col[1] = strchr(col[1], '#');
+        if (!col[1]) return 0;
+        col[1]++;
+        strncpy(new->code_usine, col[1], sizeof(new->code_usine)-1); //la premiere ccase d un storage est vide
         new->code_usine[sizeof(new->code_usine)-1] = '\0'; 
-    }
-    else{
-        new->code_usine[0] = NULL;
-    }
-    if(!empty(col[1])){
+
         strncpy(new->code_precedent, col[1], sizeof(new->code_precedent)-1);
         new->code_precedent[sizeof(new->code_precedent)-1] = '\0'; 
-    }
-    else{
-        new->code_precedent[0] = NULL;
-    }
-    if(!empty(col[2])){
+
+        col[2] = strchr(col[2], '#');
+        if (!col[2]) return 0;
+        col[2]++;
         strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
         new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
     }
-    else{
-        new->code_actuel[0] = NULL;
+    if(type == 4 || type == 5 || type == 6){
+        col[0] = strchr(col[0], '#');
+        if (!col[0]) return 0;
+        col[0]++;
+        strncpy(new->code_usine, col[0], sizeof(new->code_usine)-1);
+        new->code_usine[sizeof(new->code_usine)-1] = '\0'; 
+
+        col[1] = strchr(col[1], '#');
+        if (!col[1]) return 0;
+        col[1]++;
+        strncpy(new->code_precedent, col[1], sizeof(new->code_precedent)-1);
+        new->code_precedent[sizeof(new->code_precedent)-1] = '\0'; 
+
+        col[2] = strchr(col[2], '#');
+        if (!col[2]) return 0;
+        col[2]++;
+        strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
+        new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
     }
-    if(!empty(col[3])){
-        new->capa_max = (int)strtol(col[3], NULL, 10);
-    }
-    else{
-        new->capa_max = NULL;
-    }
-    if(!empty(col[4])){
+    new->capa_max = (int)strtol(col[3], NULL, 10);
+
+    if(new->type != 2){
         new->fuite = strtof(col[4], NULL);
     }
     else{
@@ -143,22 +163,22 @@ int detect_type(char *line){
     int l2 = empty(col[1]) ? 0 : code_len(col[1]);
     int l3 = empty(col[2]) ? 0 : code_len(col[2]);
     int c4 = !empty(col[3]);
-    if (l1 == 0 && l2 == 9 && l3 == 9 && c4) //source
+    if(l1 == 0 && l2 == 9 && l3 == 9 && c4) //source
         return 1;
 
-    if (l1 == 0 && l2 == 9 && l3 == 0 && c4) //usine
+    if(l1 == 0 && l2 == 9 && l3 == 0 && c4) //usine
         return 2;
 
-    if (l1 == 0 && l2 == 9 && l3 == 5) // storage
+    if(l1 == 0 && l2 == 9 && l3 == 5) // storage
         return 3;
 
-    if (l1 == 9 && l2 == 5 && l3 == 8) // jonction
+    if(l1 == 9 && l2 == 5 && l3 == 8) // jonction
         return 4;
 
-    if (l1 == 9 && l2 == 8 && l3 == 9) // service
+    if(l1 == 9 && l2 == 8 && l3 == 9) // service
         return 5;
 
-    if (l1 == 9 && l2 == 9 && l3 == 10) // menage
+    if(l1 == 9 && l2 == 9 && l3 == 10) // menage
         return 6;
     return 0;
 }
