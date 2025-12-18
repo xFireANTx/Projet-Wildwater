@@ -1,50 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "basic_functions.h"
+#include "avl.h"
 #include <string.h>
 
-//arbres
-arbre *rotation_droite(arbre* a){
-    arbre *b = a->fg;
-    a->fg = b->fg;
-    b->fd = a;
-    return b;
-}
-
-arbre *rotation_gauche(arbre* a){
-    arbre *b = a->fd;
-    a->fd = b->fd;
-    b->fg = a;
-    return b;
-}
-
-arbre *rotation_droite_gauche(arbre *a){
-    a->fd = rotation_droite(a->fd);
-    return rotation_gauche(a);
-}
-
-arbre *rotation_gauche_droite(arbre *a){
-    a->fg = rotation_gauche(a->fg);
-    return rotation_droite(a);
-}
-
-
-arbres_fuites *createNode(infra *new){
-    if(new==NULL){exit(1);}
-    arbres_fuites *node = malloc(sizeof(arbres_fuites));
-    if(node == NULL){exit (1);}
-    node->structure = new;
-    if(new->type == 1){
-        strncpy(node->structure->code_usine, new->code_precedent, sizeof(node->structure->code_usine) - 1);
-        node->structure->code_usine[sizeof(node->structure->code_usine) - 1] = '\0';
-    }
-    else{
-        strncpy(node->structure->code_usine, new->code_usine, sizeof(node->structure->code_usine) - 1);
-        node->structure->code_usine[sizeof(node->structure->code_usine) - 1] = '\0';    
-    }
-    node->premierf = NULL;
-    node->suivantf = NULL;
-    return node;
+arbres_fuites *createNode(infra *ancien){
+    if(ancien==NULL){exit(1);}
+    arbres_fuites *nouveau = malloc(sizeof(arbres_fuites));
+    if(nouveau == NULL){exit (1);}
+    nouveau->structure = ancien;
+    strncpy(nouveau->structure->code_usine, ancien->code_usine, sizeof(nouveau->structure->code_usine) - 1);
+    nouveau->structure->code_usine[sizeof(nouveau->structure->code_usine) - 1] = '\0';    
+    nouveau->premierf = NULL;
+    nouveau->suivantf = NULL;
+    return nouveau;
 }
 
 void addChild(arbres_fuites *parent, arbres_fuites *child){

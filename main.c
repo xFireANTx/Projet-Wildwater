@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "basic_functions.h"
+#include "avl.h"
 #include <string.h>
-#include <stdio.h>
 
 void afficher_infra(const infra *i) {
     if (i == NULL) {
