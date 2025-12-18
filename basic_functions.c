@@ -4,7 +4,8 @@
 #include "avl.h"
 #include <string.h>
 
-arbres_fuites *createNode(infra *ancien){
+arbres_fuites *createNode(char *ligne, int type){
+    infra *ancien = remplir_infra(ligne, type);
     if(ancien==NULL){exit(1);}
     arbres_fuites *nouveau = malloc(sizeof(arbres_fuites));
     if(nouveau == NULL){exit (1);}

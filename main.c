@@ -21,6 +21,28 @@ void afficher_infra(const infra *i) {
 }
 
 
+// Fonction récursive pour afficher l'AVL
+void afficherAVL(arbre *a, int niveau) {
+    if (a == NULL) return;
+
+    // Affiche le sous-arbre droit en premier (pour visualiser comme un arbre)
+    afficherAVL(a->fd, niveau + 1);
+
+    // Indentation selon le niveau
+    for (int i = 0; i < niveau; i++) {
+        printf("    ");
+    }
+
+    // Affiche uniquement les infos de la racine (sans arbres_fuites)
+    if (a->usine != NULL) {
+        printf("%s (flux: %.2f)\n", a->usine->code_usine, a->usine->flux);
+    }
+
+    // Affiche le sous-arbre gauche
+    afficherAVL(a->fg, niveau + 1);
+}
+
+
 void afficher_noeud_fuites(const arbres_fuites *n) {
     if (n == NULL) {
         printf("Noeud: NULL\n");
@@ -42,12 +64,14 @@ void main(){
     char ligne[256];  char tmp[256];
     arbres_fuites *p1;
     infra *p2;
-    /*while(fgets(ligne, sizeof(ligne), flux)){
+    arbre *root; // premiere node avl usine
+    while(fgets(ligne, sizeof(ligne), flux)){
         strcpy(tmp, ligne);          //  nom #code usine 11
-
-
-    }*/
-    while(fgets(ligne, sizeof(ligne), fichier)){
+        root = ajouter_avl_flux(root, tmp);
+        afficherAVL(root,0);
+    }
+    afficherAVL(root, 0);
+    /*while(fgets(ligne, sizeof(ligne), fichier)){
         strcpy(tmp, ligne);
         int type = detect_type(tmp);
         switch(type){
@@ -60,27 +84,28 @@ void main(){
             break;
             case 3:// stockage
                 printf("3\n");
-                p1 = createNode(remplir_infra(ligne, 3));
+                p1 = createNode(ligne, 3);
                 afficher_noeud_fuites(p1);
             break;
             case 4://jonction
                 printf("4\n");
-                p1 = createNode(remplir_infra(ligne, 4));
+                p1 = createNode(ligne, 4);
                 afficher_noeud_fuites(p1);
             break;
             case 5://service
                 printf("5\n");
-                p1 = createNode(remplir_infra(ligne, 5));
+                p1 = createNode(ligne, 5);
                 afficher_noeud_fuites(p1);
             break;
             case 6://menage
                 printf("6\n");
-                p1 = createNode(remplir_infra(ligne, 6));
+                p1 = createNode(ligne, 6);
                 afficher_noeud_fuites(p1);
             break;
         }
-    }    
+    } */   
     fclose(fichier);
+    fclose(flux);
 }
 
 
