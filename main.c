@@ -65,7 +65,7 @@ void afficher_noeud_fuites(const arbres_fuites *n) {
     printf("}\n");
 }
 
-void main(int argc, char* argv[]){
+int main(int argc, char* argv[]){
     if(argc != 5){
 		printf("main: Erreur pas le bon nombre de fichiers apres l'executable\nFormat attendue: ./exe {fichier_entree.dat} {fichier_sortie.dat} {histo/leaks} {max/src/reel}\n");
 		return 1;
