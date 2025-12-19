@@ -1,0 +1,5 @@
+Station ID;Type;Connect ID;Capacity;Leakage
+-;Plant #1;-;100000;-
+-;Plant #2;-;250000;-
+Plant #1;Pipe A;Pipe B;-;10.5
+Plant #2;Pipe C;Pipe D;-;2.0
