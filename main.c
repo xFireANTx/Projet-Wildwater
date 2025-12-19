@@ -39,7 +39,7 @@ void afficher_noeud_fuites(const arbres_fuites *n) {
 
 
 void main(int argc, char* argv[]){
-    /*if(argc != 5){
+    if(argc != 5){
 		printf("main: Erreur pas le bon nombre de fichiers apres l'executable\nFormat attendue: ./exe {fichier_entree.dat} {fichier_sortie.dat} {histo/leaks} {max/src/reel}\n");
 		return 1;
 	}
@@ -89,7 +89,7 @@ void main(int argc, char* argv[]){
 	else {
 		printf("Erreur: 'histo' ou 'leaks' attendu en 3e argument\n");
 		return 1;
-	}*/
+	}
     FILE *fichier = fopen("test.csv", "r");
     //FILE *flux = fopen("histo_reel.dat", "r");
     int boucle_principale = 0;   int type = 0;
