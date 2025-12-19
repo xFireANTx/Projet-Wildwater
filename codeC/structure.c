@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "structures.h"
+#include "structure.h"
 #include "avl.h"
 
 // --- GESTION DE LA SORTIE HISTOGRAMME ---

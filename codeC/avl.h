@@ -1,7 +1,7 @@
 #ifndef AVL_H
 #define AVL_H
 
-#include "structures.h"
+#include "structure.h"
 
 // --- Fonctions de base  ---
 int max(int a, int b);

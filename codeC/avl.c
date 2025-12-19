@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "avl.h"
-#include "structures.h"
+#include "structure.h"
 
 // --- Fonctions utilitaires ---
 

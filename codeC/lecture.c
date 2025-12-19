@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lecture.h"
-#include "structures.h"
+#include "structure.h"
 #include "avl.h"
 
 // Fonction utilitaire pour récupérer une colonne précise (1 à 5)

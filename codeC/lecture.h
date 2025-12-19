@@ -2,7 +2,7 @@
 #define LECTURE_H
 
 #include <stdio.h>
-#include "structures.h"
+#include "structure.h"
 #include "avl.h"
 
 // Lit le fichier CSV et remplit les structures
@@ -11,6 +11,5 @@ int traiter_fichier(const char *chemin_fichier, NoeudAVL_Histo **racine_histo, T
 
 // Fonction utilitaire pour parser une ligne (découpage point-virgule)
 // Plus robuste que le code précédent
-void parser_ligne(char *ligne, char *col1, char *col2, char *col3, char *col4, char *col5);
-
+void recuperer_colonne(char *ligne, int num_colonne, char *buffer);
 #endif
