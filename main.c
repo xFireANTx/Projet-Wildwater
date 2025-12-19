@@ -111,8 +111,8 @@ void main(int argc, char* argv[]){
 		}
 	}
 	else if (strcmp(argv[3], "leaks") == 0) {
-            printf("En cours\n");
-            FILE *fichier = fopen("test.csv", "r");
+        printf("En cours\n");
+        FILE *fichier = fopen("test.csv", "r");
         if (!fichier) {
             perror("fopen test.csv");
         }
