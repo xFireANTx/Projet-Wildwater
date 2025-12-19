@@ -32,6 +32,47 @@ arbre *rotation_gauche_droite(arbre *a){
     return rotation_droite(a);
 }
 
+racine *remplir_racine(char *ligne){
+    racine *nouveau = malloc(sizeof(racine));
+    if (nouveau == NULL){exit (123);}
+    char *col[2] = {0};
+    int i = 0;
+    char *tmp = strdup(ligne);
+    if (!tmp) { free(nouveau); return NULL; }
+    char *piece = strtok(tmp, ";");
+    while(piece && i < 2){
+        col[i++] = piece;
+        piece = strtok(NULL, ";");
+    }
+    if (!col[0]) { free(tmp); free(nouveau); return NULL; }
+    char *p = strchr(col[0], '#');
+    if (!p) { free(tmp); free(nouveau); return NULL; }
+    p++;
+    strncpy(nouveau->code_usine, p, sizeof(nouveau->code_usine)-1);
+    nouveau->code_usine[sizeof(nouveau->code_usine) - 1] = '\0';            //code usine apres le #
+    nouveau->flux = col[1] ? strtof(col[1], NULL) : 0.0f;
+    nouveau->actuelf = NULL;
+    nouveau->suivant = NULL;
+    free(tmp);
+    return nouveau;
+}
+
+arbre *creer_noeud_arbre(char *ligne){
+    arbre *nouveau = malloc(sizeof(arbre));
+    if (nouveau == NULL){ exit(123);};
+    nouveau->usine = remplir_racine(ligne);
+    if (!nouveau->usine) {
+        free(nouveau);
+        return NULL;
+    }
+
+    nouveau->fg = NULL;
+    nouveau->fd = NULL;
+
+    return nouveau;
+}
+
+
 int hauteur(arbre *n){
     if (n == NULL)
         return 0;
@@ -72,27 +113,40 @@ arbre *equilibrer(arbre *n){
     return n; // déjà équilibré
 }
 
-arbre *ajouter_avl(arbre *node, char *code_usine[11]){
-
+arbre *ajouter_avl_flux(arbre *node, char *ligne){
     if (node == NULL) {
-        arbre *nouveau = malloc(sizeof(arbre));
-        if (!nouveau) return NULL; 
-        strncpy(nouveau->usine->code_usine, code_usine, sizeof(nouveau->usine->code_usine) - 1);
-        nouveau->usine->code_usine[sizeof(nouveau->usine->code_usine) - 1] = '\0';  
-        nouveau->fg = nouveau->fd = NULL;
-        return nouveau;
+        return creer_noeud_arbre(ligne);  
     }
-
-    if(strcmp(code_usine, node->usine->code_usine) < 0){
-        node->fg = ajouter_avl(node->fg, code_usine);
+    char *tmp = strdup(ligne);
+    if (!tmp) return node;
+    int i = 0;
+    char *piece = strtok(tmp, ";");
+    char *col[2] = {NULL, NULL};
+    while (piece && i < 2) {
+        col[i++] = piece;
+        piece = strtok(NULL, ";");
     }
-    else if(strcmp(code_usine, node->usine->code_usine) > 0){
-        node->fd = ajouter_avl(node->fd, code_usine);
+    if (!col[0]) { free(tmp); return node; }
+    char *p = strchr(col[0], '#');
+    if (!p) { free(tmp); return node; }
+    p++;
+    char code[CODE_SIZE];
+    strncpy(code, p, sizeof(code) - 1);
+    code[sizeof(code) - 1] = '\0';
+    if (strcmp(code, node->usine->code_usine) == 0) {
+        // same usine: update flux instead of exiting
+        if (col[1]) node->usine->flux = strtof(col[1], NULL);
+        free(tmp);
+        return node;
+    } else if (strcmp(code, node->usine->code_usine) < 0) {
+        node->fg = ajouter_avl_flux(node->fg, ligne);
+    } else {
+        node->fd = ajouter_avl_flux(node->fd, ligne);
     }
-    else{
-        return node; // pas de doublons
-    }
+    free(tmp);
     return equilibrer(node);
 }
+
+
 
 

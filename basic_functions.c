@@ -4,41 +4,44 @@
 #include "avl.h"
 #include <string.h>
 
-arbres_fuites *createNode(infra *ancien){
+arbres_fuites *createNode(char *ligne, int type){
+    infra *ancien = remplir_infra(ligne, type);
     if(ancien==NULL){exit(1);}
     arbres_fuites *nouveau = malloc(sizeof(arbres_fuites));
     if(nouveau == NULL){exit (1);}
     nouveau->structure = ancien;
-    strncpy(nouveau->structure->code_usine, ancien->code_usine, sizeof(nouveau->structure->code_usine) - 1);
-    nouveau->structure->code_usine[sizeof(nouveau->structure->code_usine) - 1] = '\0';    
-    nouveau->premierf = NULL;
-    nouveau->suivantf = NULL;
+    nouveau->suivant = NULL;
+    nouveau->actuelf = NULL;
     return nouveau;
 }
 
-void addChild(arbres_fuites *parent, arbres_fuites *child){
-    if (parent->premierf == NULL) {
-        parent->premierf = child;
-    } else {
-        arbres_fuites *sibling = parent->premierf;
-        while (sibling->suivantf != NULL) {
-            sibling = sibling->suivantf;
-        }
-        sibling->suivantf = child;
+arbres_fuites *creer_parent(arbres_fuites *child){
+    arbres_fuites *parent = malloc(sizeof(arbres_fuites));
+    if (!parent) return NULL;
+    parent->actuelf = child;
+    parent->suivant = NULL;
+    return parent;
+}
+
+arbres_fuites *addChildfuites(arbres_fuites *parent, arbres_fuites *child){
+    if (parent == NULL || child == NULL) {
+        fprintf(stderr, "addChildfuites: parent or child is NULL\n");
+        return NULL;
     }
+    // attach `child` under parent's actuelf list
+    if (parent->actuelf == NULL) {
+        parent->actuelf = child;
+        child->suivant = NULL;
+        return parent;
+    }
+    arbres_fuites *cur = parent->actuelf;
+    while (cur->suivant != NULL) cur = cur->suivant;
+    cur->suivant = child;
+    child->suivant = NULL;
+    return parent;
 }
 
 
-
-// Libération mémoire
-void freeTree(arbres_fuites *node){
-    if (node == NULL) return;
-    freeTree(node->premierf);
-    freeTree(node->suivantf);
-    free(node->structure->code_usine);
-    free(node->structure);
-    free(node);
-}
 
 infra *remplir_infra(char *line, int type){
     infra *new = malloc(sizeof(infra));
@@ -95,6 +98,63 @@ infra *remplir_infra(char *line, int type){
     return new;
 }
 
+racine *ajouter_arbre_usine(racine *node, arbres_fuites *new){ // on suppose que on a deja compare et trouvé la bonne racine
+    if (node == NULL) return NULL;
+    if (new == NULL) return node;
+
+    for (racine *r = node; r != NULL; r = r->suivant) {
+        switch (new->structure->type) {
+            case 3: { // storage: attach to r->actuelf where racine code matches precedent
+                if (r->code_usine && strcmp(r->code_usine, new->structure->code_precedent) == 0) {
+                    if (r->actuelf == NULL) {
+                        r->actuelf = new;
+                        new->suivant = NULL;
+                    } else {
+                        arbres_fuites *s = r->actuelf;
+                        while (s->suivant) s = s->suivant;
+                        s->suivant = new;
+                        new->suivant = NULL;
+                    }
+                }
+            } break;
+
+            case 4: { // jonction: find matching storage nodes under this racine
+                for (arbres_fuites *s = r->actuelf; s != NULL; s = s->suivant) {
+                    if (s->structure && s->structure->code_actuel && strcmp(s->structure->code_actuel, new->structure->code_precedent) == 0) {
+                        addChildfuites(s, new);
+                    }
+                }
+            } break;
+
+            case 5: { // service: storage -> jonction -> compare
+                for (arbres_fuites *s = r->actuelf; s != NULL; s = s->suivant) {
+                    for (arbres_fuites *j = s->actuelf; j != NULL; j = j->suivant) {
+                        if (j->structure && j->structure->code_actuel && strcmp(j->structure->code_actuel, new->structure->code_precedent) == 0) {
+                            addChildfuites(j, new);
+                        }
+                    }
+                }
+            } break;
+
+            case 6: { // menage: storage -> jonction -> service -> compare
+                for (arbres_fuites *s = r->actuelf; s != NULL; s = s->suivant) {
+                    for (arbres_fuites *j = s->actuelf; j != NULL; j = j->suivant) {
+                        for (arbres_fuites *svc = j->actuelf; svc != NULL; svc = svc->suivant) {
+                            if (svc->structure && svc->structure->code_actuel && strcmp(svc->structure->code_actuel, new->structure->code_precedent) == 0) {
+                                addChildfuites(svc, new);
+                            }
+                        }
+                    }
+                }
+            } break;
+
+            default:
+                break;
+        }
+    }
+    return node;
+}
+
 /*recup csv
 junction = (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);        ;fuite)
 service =  (nom #code usine (10);nom #code jonction(9);nom #code service(9) ;        ;fuite)
@@ -133,43 +193,19 @@ int detect_type(char *line){
     if(l1 == 0 && l2 == 9 && l3 == 0 && c4) //usine
         return 2;
 
-    if(l1 == 0 && l2 == 9 && l3 == 5) // storage
+    if(l1 == 0 && l2 == 9 && l3 == 5) //storage
         return 3;
 
-    if(l1 == 9 && l2 == 5 && l3 == 8) // jonction
+    if(l1 == 9 && l2 == 5 && l3 == 8) //jonction
         return 4;
 
-    if(l1 == 9 && l2 == 8 && l3 == 9) // service
+    if(l1 == 9 && l2 == 8 && l3 == 9) //service
         return 5;
 
-    if(l1 == 9 && l2 == 9 && l3 == 10) // menage
+    if(l1 == 9 && l2 == 9 && l3 == 10) //menage
         return 6;
     return 0;
 }
 
 
-
-void next_hash(FILE* file){         //deplace curseur vers prochain (#) (pour skip les noms)
-    if(file == NULL){exit(1);}
-    int ch;
-    while((ch = getc(file)) != '#'){
-        if(ch == EOF || ch == '\n'){exit(1);}
-    }
-}
-
-void next_semi(FILE* file){         //deplace curseur vers prochain (;) (changer de colonne)
-    if(file == NULL){exit(1);}
-    int ch;
-    while((ch = getc(file)) != ';'){
-        if(ch == EOF || ch == '\n'){exit(1);}
-    }
-}
-
-void next_line(FILE* file){         //deplace curseur vers prochain retour a la ligne (changer de ligne)
-    if(file == NULL){exit(1);}
-    int ch;
-    while((ch = getc(file)) != '\n'){
-        if(ch == EOF){exit(1);}
-    }
-}
 
