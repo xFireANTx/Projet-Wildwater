@@ -44,4 +44,8 @@ typedef struct NoeudAVL_Dico {
     int equilibre;
 } NoeudAVL_Dico;
 
+// --- Prototypes ajoutés pour structures.c ---
+void generer_fichier_histo(NoeudAVL_Histo *racine, char *nom_fichier);
+void liberer_troncons(Troncon *t);
+
 #endif
