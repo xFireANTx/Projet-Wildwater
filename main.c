@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "basic_functions.h"
 #include "avl.h"
-#include <string.h>
+#include "avl_histo.h"
+
 
 void afficher_infra(const infra *i) {
     if (i == NULL) {
@@ -56,8 +58,58 @@ void afficher_noeud_fuites(const arbres_fuites *n) {
     printf("}\n");
 }
 
+void main(int argc, char* argv[]){
+    /*if(argc != 5){
+		printf("main: Erreur pas le bon nombre de fichiers apres l'executable\nFormat attendue: ./exe {fichier_entree.dat} {fichier_sortie.dat} {histo/leaks} {max/src/reel}\n");
+		return 1;
+	}
+	FILE* entree = NULL;
+	FILE* sortie = NULL;
+	
+	entree = fopen(argv[1],"r");
+	sortie = fopen(argv[2],"w+");
+	if(entree == NULL || sortie == NULL){
+		printf("main: Erreur d'ouverture du fichier\n");
+		return 1;
+	}
 
-int main(){
+    if (strcmp(argv[3], "histo") == 0) {
+		char ligne[50];
+		double vol_courant;
+		if (strcmp(argv[4], "max") == 0) {
+			Volume_traitement* arbre = NULL;
+			while(fscanf(entree, "%49[^;];%lf\n", ligne,&vol_courant)==2){
+				arbre=ajouter_vol_traitement(arbre,ligne,vol_courant);
+			}
+			infixe_traitement_inverse(arbre,sortie);
+		}           
+		else if (strcmp(argv[4], "src") == 0) {
+			Volume_traitement* arbre = NULL;
+			while(fscanf(entree, "%49[^;];%lf\n", ligne,&vol_courant)==2){
+				arbre=ajouter_vol_source(arbre,ligne,vol_courant);
+			}
+			infixe_traitement_inverse(arbre,sortie);
+		}
+		else if (strcmp(argv[4], "reel") == 0) {
+			Volume_reel* arbre = NULL;
+			double perte;
+			while(fscanf(entree, "%49[^;];%lf;%lf\n", ligne,&vol_courant,&perte)==3){
+				arbre=ajouter_vol_reel(arbre,ligne,vol_courant,perte);
+			}
+			infixe_reel_inverse(arbre,sortie);
+		} 
+		else {
+			printf("Erreur: 'max', 'src' ou 'reel' attendu en 4e argument\n");
+			return 1;
+		}
+	}
+	else if (strcmp(argv[3], "leaks") == 0) {
+		printf("En cours\n");
+	}
+	else {
+		printf("Erreur: 'histo' ou 'leaks' attendu en 3e argument\n");
+		return 1;
+	}*/
     FILE *fichier = fopen("test.csv", "r");
     if (!fichier) {
         perror("fopen test.csv");
