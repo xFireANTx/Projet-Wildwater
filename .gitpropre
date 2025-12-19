@@ -1,0 +1,13 @@
+# Compilation
+*.o
+c-wildwater
+
+# Données et résultats
+*.dat
+*.png
+*.tmp
+*.log
+data.csv
+
+# Divers
+.DS_Store
