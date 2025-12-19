@@ -37,7 +37,7 @@ volume_reel(){
 ##Vérification du bon nombre d'argument et du bon format de ceux-ci
 if [ $# -ne 3 ] 
 then
-	echo "Pas le bon nombre d'arguments, 3 arguments sont attendues (1: 'nom_fichier, 2: 'histo'/'leaks', 3: 'max' ou 'src' ou 'real'/'Identifiant_usine')."
+	echo "Pas le bon nombre d'arguments, 3 arguments sont attendues (1: 'nom_fichier, 2: 'histo'/'leaks', 3: 'max' ou 'src' ou 'reel'/'Identifiant_usine')."
 	exit 1
 fi
 
