@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "basic_functions.h"
 #include "avl.h"
-#include <string.h>
+//#include "avl_histo.h"
+
 
 void afficher_infra(const infra *i) {
     if (i == NULL) {
@@ -48,16 +50,73 @@ void afficher_noeud_fuites(const arbres_fuites *n) {
         printf("Noeud: NULL\n");
         return;
     }
-
+    int i = 0;
     printf("Noeud Arbre_fuites {\n");
     afficher_infra(n->structure);
-    printf("  premierf : %p\n", (void *)n->premierf);
-    printf("  suivantf : %p\n", (void *)n->suivantf);
+    printf("  fils%d : %p\n",i+1, (void *)n->suivant);
+    while(n->suivant != NULL){
+        i++;
+        n = n->suivant;
+        printf("  fils%d : %p\n",i+1, (void *)n->suivant);
+    }
+
     printf("}\n");
 }
 
 
-int main(){
+
+int main(int argc, char* argv[]){
+    /*if(argc != 5){
+		printf("main: Erreur pas le bon nombre de fichiers apres l'executable\nFormat attendue: ./exe {fichier_entree.dat} {fichier_sortie.dat} {histo/leaks} {max/src/reel}\n");
+		return 1;
+	}
+	FILE* entree = NULL;
+	FILE* sortie = NULL;
+	
+	entree = fopen(argv[1],"r");
+	sortie = fopen(argv[2],"w+");
+	if(entree == NULL || sortie == NULL){
+		printf("main: Erreur d'ouverture du fichier\n");
+		return 1;
+	}
+
+    if (strcmp(argv[3], "histo") == 0) {
+		char ligne[50];
+		double vol_courant;
+		if (strcmp(argv[4], "max") == 0) {
+			Volume_traitement* arbre = NULL;
+			while(fscanf(entree, "%49[^;];%lf\n", ligne,&vol_courant)==2){
+				arbre=ajouter_vol_traitement(arbre,ligne,vol_courant);
+			}
+			infixe_traitement_inverse(arbre,sortie);
+		}           
+		else if (strcmp(argv[4], "src") == 0) {
+			Volume_traitement* arbre = NULL;
+			while(fscanf(entree, "%49[^;];%lf\n", ligne,&vol_courant)==2){
+				arbre=ajouter_vol_source(arbre,ligne,vol_courant);
+			}
+			infixe_traitement_inverse(arbre,sortie);
+		}
+		else if (strcmp(argv[4], "reel") == 0) {
+			Volume_reel* arbre = NULL;
+			double perte;
+			while(fscanf(entree, "%49[^;];%lf;%lf\n", ligne,&vol_courant,&perte)==3){
+				arbre=ajouter_vol_reel(arbre,ligne,vol_courant,perte);
+			}
+			infixe_reel_inverse(arbre,sortie);
+		} 
+		else {
+			printf("Erreur: 'max', 'src' ou 'reel' attendu en 4e argument\n");
+			return 1;
+		}
+	}
+	else if (strcmp(argv[3], "leaks") == 0) {
+		printf("En cours\n");
+	}
+	else {
+		printf("Erreur: 'histo' ou 'leaks' attendu en 3e argument\n");
+		return 1;
+	}*/
     FILE *fichier = fopen("test.csv", "r");
     if (!fichier) {
         perror("fopen test.csv");
@@ -80,39 +139,39 @@ int main(){
         root = ajouter_avl_flux(root, tmp);
     }
     afficherAVL(root,0);
-    // while(fgets(ligne, sizeof(ligne), fichier)){
-    //     strcpy(tmp, ligne);
-    //     int type = detect_type(tmp);
-    //     switch(type){
-    //         case 0:
-    //             printf("end\n");
-    //             return 0;
-    //         case 1:
-    //         break;
-    //         case 2:
-    //         break;
-    //         case 3:// stockage
-    //             printf("3\n");
-    //             p1 = createNode(ligne, 3);
-    //             afficher_noeud_fuites(p1);
-    //         break;
-    //         case 4://jonction
-    //             printf("4\n");
-    //             p1 = createNode(ligne, 4);
-    //             afficher_noeud_fuites(p1);
-    //         break;
-    //         case 5://service
-    //             printf("5\n");
-    //             p1 = createNode(ligne, 5);
-    //             afficher_noeud_fuites(p1);
-    //         break;
-    //         case 6://menage
-    //             printf("6\n");
-    //             p1 = createNode(ligne, 6);
-    //             afficher_noeud_fuites(p1);
-    //         break;
-    //     }
-    // }  
+    while(fgets(ligne, sizeof(ligne), fichier)){
+        strcpy(tmp, ligne);
+        int type = detect_type(tmp);
+        switch(type){
+            case 0:
+                printf("end\n");
+                return 0;
+            case 1:
+            break;
+            case 2:
+            break;
+            case 3:// stockage
+                printf("3\n");
+                p1 = createNode(ligne, 3);
+                afficher_noeud_fuites(p1);
+            break;
+            case 4://jonction
+                printf("4\n");
+                p1 = createNode(ligne, 4);
+                afficher_noeud_fuites(p1);
+            break;
+            case 5://service
+                printf("5\n");
+                p1 = createNode(ligne, 5);
+                afficher_noeud_fuites(p1);
+            break;
+            case 6://menage
+                printf("6\n");
+                p1 = createNode(ligne, 6);
+                afficher_noeud_fuites(p1);
+            break;
+        }
+    }  
     if (flux) fclose(flux);
     if (fichier) fclose(fichier);
     return 0;

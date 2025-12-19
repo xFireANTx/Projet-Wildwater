@@ -51,8 +51,8 @@ racine *remplir_racine(char *ligne){
     strncpy(nouveau->code_usine, p, sizeof(nouveau->code_usine)-1);
     nouveau->code_usine[sizeof(nouveau->code_usine) - 1] = '\0';            //code usine apres le #
     nouveau->flux = col[1] ? strtof(col[1], NULL) : 0.0f;
-    nouveau->premierf = NULL;
-    nouveau->suivantf = NULL;
+    nouveau->actuelf = NULL;
+    nouveau->suivant = NULL;
     free(tmp);
     return nouveau;
 }

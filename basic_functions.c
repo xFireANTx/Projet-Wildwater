@@ -10,34 +10,38 @@ arbres_fuites *createNode(char *ligne, int type){
     arbres_fuites *nouveau = malloc(sizeof(arbres_fuites));
     if(nouveau == NULL){exit (1);}
     nouveau->structure = ancien;
-    nouveau->premierf = NULL;
-    nouveau->suivantf = NULL;
+    nouveau->suivant = NULL;
+    nouveau->actuelf = NULL;
     return nouveau;
 }
 
-void addChild(arbres_fuites *parent, arbres_fuites *child){
-    if (parent->premierf == NULL) {
-        parent->premierf = child;
-    } else {
-        arbres_fuites *sibling = parent->premierf;
-        while (sibling->suivantf != NULL) {
-            sibling = sibling->suivantf;
-        }
-        sibling->suivantf = child;
+arbres_fuites *creer_parent(arbres_fuites *child){
+    arbres_fuites *parent = malloc(sizeof(arbres_fuites));
+    if (!parent) return NULL;
+    parent->actuelf = child;
+    parent->suivant = NULL;
+    return parent;
+}
+
+arbres_fuites *addChildfuites(arbres_fuites *parent, arbres_fuites *child){
+    if (parent == NULL || child == NULL) {
+        fprintf(stderr, "addChildfuites: parent or child is NULL\n");
+        return NULL;
     }
+    // attach `child` under parent's actuelf list
+    if (parent->actuelf == NULL) {
+        parent->actuelf = child;
+        child->suivant = NULL;
+        return parent;
+    }
+    arbres_fuites *cur = parent->actuelf;
+    while (cur->suivant != NULL) cur = cur->suivant;
+    cur->suivant = child;
+    child->suivant = NULL;
+    return parent;
 }
 
 
-
-// Libération mémoire
-void freeTree(arbres_fuites *node){
-    if (node == NULL) return;
-    freeTree(node->premierf);
-    freeTree(node->suivantf);
-    // `code_usine` is an array inside `infra`, don't free that separately.
-    if (node->structure) free(node->structure);
-    free(node);
-}
 
 infra *remplir_infra(char *line, int type){
     infra *new = malloc(sizeof(infra));
@@ -92,6 +96,63 @@ infra *remplir_infra(char *line, int type){
 
     new->flux = 0;
     return new;
+}
+
+racine *ajouter_arbre_usine(racine *node, arbres_fuites *new){ // on suppose que on a deja compare et trouvé la bonne racine
+    if (node == NULL) return NULL;
+    if (new == NULL) return node;
+
+    for (racine *r = node; r != NULL; r = r->suivant) {
+        switch (new->structure->type) {
+            case 3: { // storage: attach to r->actuelf where racine code matches precedent
+                if (r->code_usine && strcmp(r->code_usine, new->structure->code_precedent) == 0) {
+                    if (r->actuelf == NULL) {
+                        r->actuelf = new;
+                        new->suivant = NULL;
+                    } else {
+                        arbres_fuites *s = r->actuelf;
+                        while (s->suivant) s = s->suivant;
+                        s->suivant = new;
+                        new->suivant = NULL;
+                    }
+                }
+            } break;
+
+            case 4: { // jonction: find matching storage nodes under this racine
+                for (arbres_fuites *s = r->actuelf; s != NULL; s = s->suivant) {
+                    if (s->structure && s->structure->code_actuel && strcmp(s->structure->code_actuel, new->structure->code_precedent) == 0) {
+                        addChildfuites(s, new);
+                    }
+                }
+            } break;
+
+            case 5: { // service: storage -> jonction -> compare
+                for (arbres_fuites *s = r->actuelf; s != NULL; s = s->suivant) {
+                    for (arbres_fuites *j = s->actuelf; j != NULL; j = j->suivant) {
+                        if (j->structure && j->structure->code_actuel && strcmp(j->structure->code_actuel, new->structure->code_precedent) == 0) {
+                            addChildfuites(j, new);
+                        }
+                    }
+                }
+            } break;
+
+            case 6: { // menage: storage -> jonction -> service -> compare
+                for (arbres_fuites *s = r->actuelf; s != NULL; s = s->suivant) {
+                    for (arbres_fuites *j = s->actuelf; j != NULL; j = j->suivant) {
+                        for (arbres_fuites *svc = j->actuelf; svc != NULL; svc = svc->suivant) {
+                            if (svc->structure && svc->structure->code_actuel && strcmp(svc->structure->code_actuel, new->structure->code_precedent) == 0) {
+                                addChildfuites(svc, new);
+                            }
+                        }
+                    }
+                }
+            } break;
+
+            default:
+                break;
+        }
+    }
+    return node;
 }
 
 /*recup csv

@@ -18,15 +18,15 @@ typedef struct Infra{
 
 typedef struct Arbres_fuites{
     infra *structure;
-    struct Arbres_fuites *premierf;
-    struct Arbres_fuites *suivantf;
+    struct Arbres_fuites *suivant;
+    struct Arbres_fuites *actuelf;
 }arbres_fuites;
 
 typedef struct Racine{
     char code_usine[CODE_SIZE];
     float flux;
-    struct Arbres_fuites *premierf;
-    struct Arbres_fuites *suivantf;
+    struct Racine *suivant;
+    struct Arbres_fuites *actuelf;
 }racine;
 
 typedef struct Arbre{
