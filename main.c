@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string.h>
 #include "basic_functions.h"
 #include "avl.h"
-//#include "avl_histo.h"
+#include "avl_histo.h"
 
 
 void afficher_infra(const infra *i) {
@@ -63,9 +64,7 @@ void afficher_noeud_fuites(const arbres_fuites *n) {
     printf("}\n");
 }
 
-
-
-int main(int argc, char* argv[]){
+void main(int argc, char* argv[]){
     /*if(argc != 5){
 		printf("main: Erreur pas le bon nombre de fichiers apres l'executable\nFormat attendue: ./exe {fichier_entree.dat} {fichier_sortie.dat} {histo/leaks} {max/src/reel}\n");
 		return 1;
