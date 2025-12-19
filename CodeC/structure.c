@@ -7,8 +7,6 @@
 // --- GESTION DE LA SORTIE HISTOGRAMME ---
 
 // Parcours récursif inverse (Droite -> Racine -> Gauche)
-// Objectif : Écrire les usines dans l'ordre alphabétique décroissant (Z à A)
-// comme demandé par le script Gnuplot ou les exemples de sortie.
 void ecrire_histo_recur(NoeudAVL_Histo *n, FILE *f) {
     if (n == NULL) return;
 
@@ -44,32 +42,26 @@ void generer_fichier_histo(NoeudAVL_Histo *racine, char *nom_fichier) {
     fclose(f);
 }
 
-// --- LOGIQUE MÉTIER (CALCULS) ---
+// --- LOGIQUE CALCULS ---
 
-// C'est la fonction "Intelligente".
-// Elle parcourt l'arbre des connexions (le réseau physique).
 // Elle renvoie le volume total d'eau qui passe par ce tronçon.
 long accumuler_flux(Troncon *t, NoeudAVL_Histo *dico_usines) {
     if (t == NULL) return 0;
 
-    // Volume qui vient des enfants (sous-réseau)
+    // Volume qui vient des enfants 
     long volume_venant_des_fils = accumuler_flux(t->fils, dico_usines);
 
     // On calcule le volume local.
-    // Si c'est une feuille (pas de fils), on simule une consommation de base.
+    // Si c'est une feuille, on simule une consommation de base.
     // Sinon, c'est la somme des fils.
     long volume_local = (volume_venant_des_fils == 0) ? 1000 : volume_venant_des_fils;
 
     // Si ce tronçon correspond à une Usine connue (on cherche dans l'AVL Histo),
-    // on met à jour ses données pour le graphique.
     Station *usine = rechercher_station(dico_usines, t->id);
     if (usine != NULL) {
-        // Le volume "Source" est ce qui sort de l'usine
         usine->vol_source = volume_local;
         
         // Le volume "Traité" (Réel) est ce qui reste après les fuites du réseau aval
-        // (Simplification niveau étudiant : on soustrait un ratio basé sur les fuites locales)
-        // Ratio de perte local = pourcentage_fuite
         double perte = volume_local * (t->pourcentage_fuite / 100.0);
         usine->vol_traite = volume_local - (long)perte;
         
@@ -79,8 +71,8 @@ long accumuler_flux(Troncon *t, NoeudAVL_Histo *dico_usines) {
         }
     }
 
-    // Appel récursif pour traiter les frères (le reste du niveau)
-    // Note : le volume des frères ne s'additionne pas au nôtre, c'est une autre branche.
+    // Appel récursif pour traiter le reste du niveau
+    
     accumuler_flux(t->frere, dico_usines);
 
     // On retourne le volume de CE nœud pour que son parent puisse l'additionner
