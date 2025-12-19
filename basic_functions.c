@@ -10,8 +10,6 @@ arbres_fuites *createNode(char *ligne, int type){
     arbres_fuites *nouveau = malloc(sizeof(arbres_fuites));
     if(nouveau == NULL){exit (1);}
     nouveau->structure = ancien;
-    strncpy(nouveau->structure->code_usine, ancien->code_usine, sizeof(nouveau->structure->code_usine) - 1);
-    nouveau->structure->code_usine[sizeof(nouveau->structure->code_usine) - 1] = '\0';    
     nouveau->premierf = NULL;
     nouveau->suivantf = NULL;
     return nouveau;
@@ -36,8 +34,8 @@ void freeTree(arbres_fuites *node){
     if (node == NULL) return;
     freeTree(node->premierf);
     freeTree(node->suivantf);
-    free(node->structure->code_usine);
-    free(node->structure);
+    // `code_usine` is an array inside `infra`, don't free that separately.
+    if (node->structure) free(node->structure);
     free(node);
 }
 
@@ -134,43 +132,19 @@ int detect_type(char *line){
     if(l1 == 0 && l2 == 9 && l3 == 0 && c4) //usine
         return 2;
 
-    if(l1 == 0 && l2 == 9 && l3 == 5) // storage
+    if(l1 == 0 && l2 == 9 && l3 == 5) //storage
         return 3;
 
-    if(l1 == 9 && l2 == 5 && l3 == 8) // jonction
+    if(l1 == 9 && l2 == 5 && l3 == 8) //jonction
         return 4;
 
-    if(l1 == 9 && l2 == 8 && l3 == 9) // service
+    if(l1 == 9 && l2 == 8 && l3 == 9) //service
         return 5;
 
-    if(l1 == 9 && l2 == 9 && l3 == 10) // menage
+    if(l1 == 9 && l2 == 9 && l3 == 10) //menage
         return 6;
     return 0;
 }
 
 
-
-void next_hash(FILE* file){         //deplace curseur vers prochain (#) (pour skip les noms)
-    if(file == NULL){exit(1);}
-    int ch;
-    while((ch = getc(file)) != '#'){
-        if(ch == EOF || ch == '\n'){exit(1);}
-    }
-}
-
-void next_semi(FILE* file){         //deplace curseur vers prochain (;) (changer de colonne)
-    if(file == NULL){exit(1);}
-    int ch;
-    while((ch = getc(file)) != ';'){
-        if(ch == EOF || ch == '\n'){exit(1);}
-    }
-}
-
-void next_line(FILE* file){         //deplace curseur vers prochain retour a la ligne (changer de ligne)
-    if(file == NULL){exit(1);}
-    int ch;
-    while((ch = getc(file)) != '\n'){
-        if(ch == EOF){exit(1);}
-    }
-}
 

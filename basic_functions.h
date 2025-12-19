@@ -6,11 +6,12 @@
 //arbres
 
 //traitement
+#define CODE_SIZE 11
 typedef struct Infra{
     int type;
-    char code_usine[11];
-    char code_precedent[11];
-    char code_actuel[11];
+    char code_usine[CODE_SIZE];
+    char code_precedent[CODE_SIZE];
+    char code_actuel[CODE_SIZE];
     float fuite;
     float flux; // pas besoin de capa max
 }infra;
@@ -22,7 +23,7 @@ typedef struct Arbres_fuites{
 }arbres_fuites;
 
 typedef struct Racine{
-    char code_usine[11];
+    char code_usine[CODE_SIZE];
     float flux;
     struct Arbres_fuites *premierf;
     struct Arbres_fuites *suivantf;
@@ -43,8 +44,6 @@ arbres_fuites *createNode(char *line, int type);
 int detect_type(char* line); // 1 = source, 2 = usine, 3 = stockage, 4 = jonction, 5 = service, 6 = menages
 int code_len(const char *s);
 int empty(const char *s);
-void next_hash(FILE* file);
-void next_semi(FILE* file);
-void next_line(FILE* file);
+
 
 #endif 
