@@ -3,7 +3,8 @@
 #include <string.h>
 #include "basic_functions.h"
 #include "avl.h"
-#include "avl_histo.h"
+#include "avl_histo_reel.h"
+#include "avl_histo_traitement.h"
 
 
 void afficher_infra(const infra *i) {
