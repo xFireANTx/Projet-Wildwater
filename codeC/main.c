@@ -3,7 +3,7 @@
 #include <string.h>
 #include "lecture.h"
 #include "avl.h"
-#include "structure.h" // <--- Sans 's' ici aussi !
+#include "structure.h" 
 
 int main(int argc, char *argv[]) {
     // Arguments attendus :
