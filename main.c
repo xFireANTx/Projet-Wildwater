@@ -65,7 +65,7 @@ void afficher_noeud_fuites(const arbres_fuites *n) {
 }
 
 void main(int argc, char* argv[]){
-    /*if(argc != 5){
+    if(argc != 5){
 		printf("main: Erreur pas le bon nombre de fichiers apres l'executable\nFormat attendue: ./exe {fichier_entree.dat} {fichier_sortie.dat} {histo/leaks} {max/src/reel}\n");
 		return 1;
 	}
@@ -110,70 +110,71 @@ void main(int argc, char* argv[]){
 		}
 	}
 	else if (strcmp(argv[3], "leaks") == 0) {
-		printf("En cours\n");
+            printf("En cours\n");
+            FILE *fichier = fopen("test.csv", "r");
+        if (!fichier) {
+            perror("fopen test.csv");
+        }
+        FILE *flux = fopen("histo_real.dat", "r"); //remplacer par reel quand on combine
+        if (!flux) {
+            perror("fopen histo_real.dat");
+            if (fichier) fclose(fichier);
+            return 1;
+        }
+        int boucle_principale = 0;   int type = 0;
+        char ligne[256];  char tmp[256];
+        arbres_fuites *p1;
+        infra *p2;
+        arbre *root = NULL; // premiere node avl usine
+        while(fgets(ligne, sizeof(ligne), flux)){
+            ligne[strcspn(ligne, "\r\n")] = '\0';
+            strncpy(tmp, ligne, sizeof(tmp)-1);
+            tmp[sizeof(tmp)-1] = '\0';
+            root = ajouter_avl_flux(root, tmp);
+        }
+        afficherAVL(root,0);
+        while(fgets(ligne, sizeof(ligne), fichier)){
+            strcpy(tmp, ligne);
+            int type = detect_type(tmp);
+            switch(type){
+                case 0:
+                    printf("end\n");
+                    return 0;
+                case 1:
+                break;
+                case 2:
+                break;
+                case 3:// stockage
+                    printf("3\n");
+                    p1 = createNode(ligne, 3);
+                    afficher_noeud_fuites(p1);
+                break;
+                case 4://jonction
+                    printf("4\n");
+                    p1 = createNode(ligne, 4);
+                    afficher_noeud_fuites(p1);
+                break;
+                case 5://service
+                    printf("5\n");
+                    p1 = createNode(ligne, 5);
+                    afficher_noeud_fuites(p1);
+                break;
+                case 6://menage
+                    printf("6\n");
+                    p1 = createNode(ligne, 6);
+                    afficher_noeud_fuites(p1);
+                break;
+            }
+        }  
+        if (flux) fclose(flux);
+        if (fichier) fclose(fichier);
+        return 0;
+
 	}
 	else {
 		printf("Erreur: 'histo' ou 'leaks' attendu en 3e argument\n");
 		return 1;
-	}*/
-    FILE *fichier = fopen("test.csv", "r");
-    if (!fichier) {
-        perror("fopen test.csv");
-    }
-    FILE *flux = fopen("histo_real.dat", "r"); //remplacer par reel quand on combine
-    if (!flux) {
-        perror("fopen histo_real.dat");
-        if (fichier) fclose(fichier);
-        return 1;
-    }
-    int boucle_principale = 0;   int type = 0;
-    char ligne[256];  char tmp[256];
-    arbres_fuites *p1;
-    infra *p2;
-    arbre *root = NULL; // premiere node avl usine
-    while(fgets(ligne, sizeof(ligne), flux)){
-        ligne[strcspn(ligne, "\r\n")] = '\0';
-        strncpy(tmp, ligne, sizeof(tmp)-1);
-        tmp[sizeof(tmp)-1] = '\0';
-        root = ajouter_avl_flux(root, tmp);
-    }
-    afficherAVL(root,0);
-    while(fgets(ligne, sizeof(ligne), fichier)){
-        strcpy(tmp, ligne);
-        int type = detect_type(tmp);
-        switch(type){
-            case 0:
-                printf("end\n");
-                return 0;
-            case 1:
-            break;
-            case 2:
-            break;
-            case 3:// stockage
-                printf("3\n");
-                p1 = createNode(ligne, 3);
-                afficher_noeud_fuites(p1);
-            break;
-            case 4://jonction
-                printf("4\n");
-                p1 = createNode(ligne, 4);
-                afficher_noeud_fuites(p1);
-            break;
-            case 5://service
-                printf("5\n");
-                p1 = createNode(ligne, 5);
-                afficher_noeud_fuites(p1);
-            break;
-            case 6://menage
-                printf("6\n");
-                p1 = createNode(ligne, 6);
-                afficher_noeud_fuites(p1);
-            break;
-        }
-    }  
-    if (flux) fclose(flux);
-    if (fichier) fclose(fichier);
-    return 0;
+	}
 }
 
 
