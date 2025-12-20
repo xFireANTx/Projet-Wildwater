@@ -65,7 +65,7 @@ void afficher_noeud_fuites(const arbres_fuites *n) {
     printf("}\n");
 }
 
-void main(int argc, char* argv[]){
+int main(int argc, char* argv[]){
     if(argc != 5){
 		printf("main: Erreur pas le bon nombre de fichiers apres l'executable\nFormat attendue: ./exe {fichier_entree.dat} {fichier_sortie.dat} {histo/leaks} {max/src/reel}\n");
 		return 1;
@@ -111,8 +111,8 @@ void main(int argc, char* argv[]){
 		}
 	}
 	else if (strcmp(argv[3], "leaks") == 0) {
-            printf("En cours\n");
-            FILE *fichier = fopen("test.csv", "r");
+        printf("En cours\n");
+        FILE *fichier = fopen("test.csv", "r");
         if (!fichier) {
             perror("fopen test.csv");
         }
@@ -124,8 +124,8 @@ void main(int argc, char* argv[]){
         }
         int boucle_principale = 0;   int type = 0;
         char ligne[256];  char tmp[256];
-        arbres_fuites *p1;
-        infra *p2;
+        arbres_fuites *p1;              //
+        infra *p2;                      //
         arbre *root = NULL; // premiere node avl usine
         while(fgets(ligne, sizeof(ligne), flux)){
             ligne[strcspn(ligne, "\r\n")] = '\0';
