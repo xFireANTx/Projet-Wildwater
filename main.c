@@ -174,12 +174,13 @@ int main(int argc, char* argv[]){
         }  
         if (flux) fclose(flux);
         if (fichier) fclose(fichier);
+        float total_fuite;
         traverse_avl(root); // calcule les fuites une fois que toutes les infrastructures sont ajoutées
-        float total_fuite = recuperer_fuites(chercher_avl(code_usine_recherché, root));
+        if (!code_usine_recherché) { total_fuite = -1; }
+        code_usine_recherché = strchr(code_usine_recherché, '#');
+        if (code_usine_recherché) { code_usine_recherché++; }
 
-
-
-
+        total_fuite = recuperer_fuites(chercher_avl(code_usine_recherché, root));
 	}
 	else {
 		printf("Erreur: 'histo' ou 'leaks' attendu en 3e argument\n");
