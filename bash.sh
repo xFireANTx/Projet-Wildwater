@@ -1,6 +1,6 @@
 #!/bin/bash
 
-debut_chrono = $(date +%s%3N)
+debut_chrono=$(date +%s%3N)
 
 volume_max(){
     local source="$1"
@@ -26,6 +26,15 @@ volume_reel(){
     rm temp_reel out_reel
 }
 
+volume_fuite(){
+	local source="$1"
+	local id="$2"
+	awk -F';' '$1 == "-" && $3 != "-" && $4 != "-"' "$source" | cut -d';' -f3-5 > temp_fuite
+	./exe "$1" temp_fuite out_fuite leaks "$id"
+	cat out_fuite
+	rm out_fuite temp_fuite
+}
+
 # Vérification arguments
 if [ $# -ne 3 ]; then
     echo "Usage: $0 fichier histo|leaks max|src|reel"
@@ -36,10 +45,9 @@ fichier_source="$1"
 histo_leaks="$2"
 mode="$3"
 
-Nom_fichier="${histo_leaks}_${mode}.dat"
-
 case "$histo_leaks" in
 histo)
+	Nom_fichier="${histo_leaks}_${mode}.dat"
     case "$mode" in
     max)
         Nom_colonne="volume max(M.m3/an)"
@@ -57,11 +65,33 @@ histo)
         echo "Mode invalide"
         exit 1
         ;;
+     
     esac
+	echo "identifier;$Nom_colonne" > "$Nom_fichier"
+	echo "$donnee" >> "$Nom_fichier"
+	
+
+#On trie le fichier de tel sorte à avoir les usines triées de la plus grande valeur à la plus petite
+	{
+		head -n 1 "$Nom_fichier"
+		tail -n +2 "$Nom_fichier" | sort -t';' -k2,2 -n -r
+	} > temp_val
+
+	head -n 11 temp_val| tail -n 10 > temp_max
+	tail -n 50 temp_val > temp_min
+	rm temp_val
+	
     ;;
 leaks)
-    Nom_colonne="leaks_volume(M.m3/an)"
-    donnee="empty"
+	donnee=$(volume_fuite "$fichier_source" "$mode")
+	if [ -f "fuites.dat" ]; then
+		echo "$donnee" >> fuites.dat
+	else
+		Nom_fichier="fuites.dat"
+    	Nom_colonne="leaks_volume(M.m3/an)"
+    	echo "identifier;$Nom_colonne" > "$Nom_fichier"
+    	echo "$donnee" >> "$Nom_fichier"
+    fi
     ;;
 *)
     echo "Type invalide"
@@ -69,19 +99,7 @@ leaks)
     ;;
 esac
 
-echo "identifier;$Nom_colonne" > "$Nom_fichier"
-echo "$donnee" >> "$Nom_fichier"
-
-{
-    head -n 1 "$Nom_fichier"
-    tail -n +2 "$Nom_fichier" | sort -t';' -k2,2 -n -r
-} > temp_val
-
-head -n 11 temp_val| tail -n 10 > temp_max
-tail -n 50 temp_val > temp_min
-rm temp_val
-
-fin_chrono =$(date+%s%3N)
-temps_execution = $((fin_chrono - debut_chrono))
+fin_chrono=$(date +%s%3N)
+temps_execution=$((fin_chrono - debut_chrono))
 echo "Nom du fichier créé: $Nom_fichier"
-echo "Temps d'execution: $temps_execution"
+echo "Temps d'execution: $temps_execution ms"
