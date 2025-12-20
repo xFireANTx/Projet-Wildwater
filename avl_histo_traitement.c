@@ -84,7 +84,7 @@ void infixe_traitement_inverse(Volume_traitement* arbre,FILE* sortie){
 		return;
 	}
 	infixe_traitement_inverse(arbre->fg,sortie);
-	fprintf(sortie,"%s;%.5lf\n",arbre->identifiant,arbre->volume);
+	fprintf(sortie,"%s;%lf\n",arbre->identifiant,arbre->volume);
 	infixe_traitement_inverse(arbre->fd,sortie);
 }
 

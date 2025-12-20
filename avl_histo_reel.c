@@ -26,8 +26,8 @@ Volume_reel* create_vol_reel(char *id, double volume, double fuite){
 		exit(1);
 	}
 	strcpy(nouv->identifiant,id);
-	nouv->volume = volume/1000.0;
 	nouv->fuite = fuite;
+	nouv->volume = volume*(1.0-(fuite/100.0))/1000.0;
 	nouv->fg = NULL;
 	nouv->fd = NULL;
 	nouv->hauteur = 1;
@@ -66,7 +66,7 @@ void infixe_reel_inverse(Volume_reel* arbre, FILE* sortie){
 		return;
 	}
 	infixe_reel_inverse(arbre->fg,sortie);
-	fprintf(sortie,"%s;%.5lf\n",arbre->identifiant,arbre->volume);
+	fprintf(sortie,"%s;%lf\n",arbre->identifiant,arbre->volume);
 	infixe_reel_inverse(arbre->fd,sortie);
 }
 
