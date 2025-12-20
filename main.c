@@ -137,9 +137,7 @@ int main(int argc, char* argv[]){
         strcpy(code_usine_recherché, argv[5]); 
         arbres_fuites *p1;              
         arbre *root = NULL; // premiere node avl usine
-        arbres_fuites *p1;
         infra *p2;
-        arbre* root = NULL;
         while(fgets(ligne, sizeof(ligne), flux)){
             ligne[strcspn(ligne, "\r\n")] = '\0';
             strncpy(tmp, ligne, sizeof(tmp)-1);
