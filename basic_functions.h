@@ -36,14 +36,23 @@ typedef struct Arbre{
 }arbre;
 
 infra *remplir_infra(char *line, int type);         //marche pour 3,4,5,6 jsp si je veut utiliser la meme chose pour usine et source n est pas utile
-void freeTree(arbres_fuites *node);
-void addChild(arbres_fuites *parent, arbres_fuites *child);
 arbres_fuites *createNode(char *line, int type);
+arbres_fuites *addChildfuites(arbres_fuites *parent, arbres_fuites *child);
+
 
 //lecture fichier
 int detect_type(char* line); // 1 = source, 2 = usine, 3 = stockage, 4 = jonction, 5 = service, 6 = menages
 int code_len(const char *s);
 int empty(const char *s);
+
+
+void calcule_fuites(racine *usine);
+float recuperer_fuites(racine *usine);
+racine *ajouter_arbre_usine(racine *node, arbres_fuites *new);
+racine *chercher_avl(const char *code_usine, arbre *root);
+
+// Traverse the AVL in-order and perform per-node action
+void traverse_avl(arbre *root);
 
 
 #endif 

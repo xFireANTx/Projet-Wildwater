@@ -92,12 +92,13 @@ infra *remplir_infra(char *line, int type){
     return new;
 }
 
-racine *chercher_avl(infra *structure, arbre *root){
-    if(structure == NULL) return NULL;
-    if(root == NULL) return NULL;   
-    char *code_usine = structure->code_usine;
-
-    
+racine *chercher_avl(const char *code_usine, arbre *root){
+    if (code_usine == NULL || root == NULL) return NULL;
+    if (root->usine == NULL) return NULL;
+    int cmp = strcmp(code_usine, root->usine->code_usine);
+    if (cmp == 0) return root->usine;
+    if (cmp < 0) return chercher_avl(code_usine, root->fg);
+    return chercher_avl(code_usine, root->fd);
 }
 
 racine *ajouter_arbre_usine(racine *node, arbres_fuites *new){ // on suppose que on a deja compare et trouvé la bonne racine
@@ -191,25 +192,21 @@ int detect_type(char *line){
     int l2 = empty(col[1]) ? 0 : code_len(col[1]);
     int l3 = empty(col[2]) ? 0 : code_len(col[2]);
     int c4 = !empty(col[3]);
+    int result = 0;
     if(l1 == 0 && l2 == 9 && l3 == 9 && c4) //source
-        return 1;
-
-    if(l1 == 0 && l2 == 9 && l3 == 0 && c4) //usine
-        return 2;
-
-    if(l1 == 0 && l2 == 9 && l3 == 5) //storage
-        return 3;
-
-    if(l1 == 9 && l2 == 5 && l3 == 8) //jonction
-        return 4;
-
-    if(l1 == 9 && l2 == 8 && l3 == 9) //service
-        return 5;
-
-    if(l1 == 9 && l2 == 9 && l3 == 10) //menage
-        return 6;
+        result = 1;
+    else if(l1 == 0 && l2 == 9 && l3 == 0 && c4) //usine
+        result = 2;
+    else if(l1 == 0 && l2 == 9 && l3 == 5) //storage
+        result = 3;
+    else if(l1 == 9 && l2 == 5 && l3 == 8) //jonction
+        result = 4;
+    else if(l1 == 9 && l2 == 8 && l3 == 9) //service
+        result = 5;
+    else if(l1 == 9 && l2 == 9 && l3 == 10) //menage
+        result = 6;
     free(tmp);
-    return 0;
+    return result;
 }
 
 //recup fuites pour toutes les usines
@@ -251,6 +248,14 @@ void calcule_fuites(racine *usine){
             }
         }
     }
+}
+
+// In-order traversal of the AVL. Calls `visit` for each `racine` node.
+void traverse_avl(arbre *root){
+    if (root == NULL) return;
+    calcule_fuites(root->usine);
+    traverse_avl(root->fg);
+    traverse_avl(root->fd);
 }
 
 

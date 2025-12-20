@@ -133,6 +133,10 @@ int main(int argc, char* argv[]){
         }
         int boucle_principale = 0;   int type = 0;
         char ligne[256];  char tmp[256];
+        char *code_usine_recherché;
+        strcpy(code_usine_recherché, argv[5]); 
+        arbres_fuites *p1;              
+        arbre *root = NULL; // premiere node avl usine
         arbres_fuites *p1;
         infra *p2;
         arbre* root = NULL;
@@ -142,7 +146,6 @@ int main(int argc, char* argv[]){
             tmp[sizeof(tmp)-1] = '\0';
             root = ajouter_avl_flux(root, tmp);
         }
-        afficherAVL(root,0);
         while(fgets(ligne, sizeof(ligne), fichier)){
             strcpy(tmp, ligne);
             type = detect_type(tmp);
@@ -152,34 +155,44 @@ int main(int argc, char* argv[]){
                     break;
                 case 1:
                 break;
+
                 case 2:
                 break;
+
                 case 3:// stockage
                     printf("3\n");
                     p1 = createNode(ligne, 3);
-                    afficher_noeud_fuites(p1);
+                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
                 break;
+
                 case 4://jonction
                     printf("4\n");
                     p1 = createNode(ligne, 4);
-                    afficher_noeud_fuites(p1);
+                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
                 break;
+
                 case 5://service
                     printf("5\n");
                     p1 = createNode(ligne, 5);
-                    afficher_noeud_fuites(p1);
+                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
                 break;
+
                 case 6://menage
                     printf("6\n");
                     p1 = createNode(ligne, 6);
-                    afficher_noeud_fuites(p1);
+                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
                 break;
             }
         }  
         if (flux) fclose(flux);
         if (fichier) fclose(fichier);
-        return 0;
+        float total_fuite;
+        traverse_avl(root); // calcule les fuites une fois que toutes les infrastructures sont ajoutées
+        if (!code_usine_recherché) { total_fuite = -1; }
+        code_usine_recherché = strchr(code_usine_recherché, '#');
+        if (code_usine_recherché) { code_usine_recherché++; }
 
+        total_fuite = recuperer_fuites(chercher_avl(code_usine_recherché, root));
 	}
 	else {
 		printf("Erreur: 'histo' ou 'leaks' attendu en 4e argument\n");
