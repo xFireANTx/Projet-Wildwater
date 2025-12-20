@@ -110,7 +110,7 @@ int main(int argc, char* argv[]){
 			return 1;
 		}
 	}
-	else if (strcmp(argv[3], "leaks") == 0) {
+	else if (strcmp(argv[3], "leaks") == 0){
         printf("En cours\n");
         FILE *fichier = fopen("test.csv", "r");
         if (!fichier) {
@@ -124,8 +124,9 @@ int main(int argc, char* argv[]){
         }
         int boucle_principale = 0;   int type = 0;
         char ligne[256];  char tmp[256];
-        arbres_fuites *p1;              //
-        infra *p2;                      //
+        char *code_usine_recherché;
+        strcpy(code_usine_recherché, argv[5]); 
+        arbres_fuites *p1;              
         arbre *root = NULL; // premiere node avl usine
         while(fgets(ligne, sizeof(ligne), flux)){
             ligne[strcspn(ligne, "\r\n")] = '\0';
@@ -133,7 +134,6 @@ int main(int argc, char* argv[]){
             tmp[sizeof(tmp)-1] = '\0';
             root = ajouter_avl_flux(root, tmp);
         }
-        afficherAVL(root,0);
         while(fgets(ligne, sizeof(ligne), fichier)){
             strcpy(tmp, ligne);
             int type = detect_type(tmp);
@@ -143,33 +143,42 @@ int main(int argc, char* argv[]){
                     return 0;
                 case 1:
                 break;
+
                 case 2:
                 break;
+
                 case 3:// stockage
                     printf("3\n");
                     p1 = createNode(ligne, 3);
-                    afficher_noeud_fuites(p1);
+                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
                 break;
+
                 case 4://jonction
                     printf("4\n");
                     p1 = createNode(ligne, 4);
-                    afficher_noeud_fuites(p1);
+                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
                 break;
+
                 case 5://service
                     printf("5\n");
                     p1 = createNode(ligne, 5);
-                    afficher_noeud_fuites(p1);
+                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
                 break;
+
                 case 6://menage
                     printf("6\n");
                     p1 = createNode(ligne, 6);
-                    afficher_noeud_fuites(p1);
+                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
                 break;
             }
         }  
         if (flux) fclose(flux);
         if (fichier) fclose(fichier);
-        return 0;
+        traverse_avl(root); // calcule les fuites une fois que toutes les infrastructures sont ajoutées
+        float total_fuite = recuperer_fuites(chercher_avl(code_usine_recherché, root));
+
+
+
 
 	}
 	else {
