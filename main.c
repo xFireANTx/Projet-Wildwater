@@ -124,8 +124,8 @@ int main(int argc, char* argv[]){
         }
         int boucle_principale = 0;   int type = 0;
         char ligne[256];  char tmp[256];
-        arbres_fuites *p1;
-        infra *p2;
+        arbres_fuites *p1;              //
+        infra *p2;                      //
         arbre *root = NULL; // premiere node avl usine
         while(fgets(ligne, sizeof(ligne), flux)){
             ligne[strcspn(ligne, "\r\n")] = '\0';
