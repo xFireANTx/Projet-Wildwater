@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <string.h>
 #include "basic_functions.h"
 #include "avl.h"
 #include "avl_histo_reel.h"
@@ -66,67 +65,77 @@ void afficher_noeud_fuites(const arbres_fuites *n) {
 }
 
 int main(int argc, char* argv[]){
-    if(argc != 5){
-		printf("main: Erreur pas le bon nombre de fichiers apres l'executable\nFormat attendue: ./exe {fichier_entree.dat} {fichier_sortie.dat} {histo/leaks} {max/src/reel}\n");
+    if(argc != 6){
+		printf("main: Erreur pas le bon nombre de fichiers apres l'executable\nFormat attendue: ./exe {fichier_complet} {fichier_entree.dat} {fichier_sortie.dat} {histo/leaks} {max/src/reel}\n");
 		return 1;
 	}
 	FILE* entree = NULL;
 	FILE* sortie = NULL;
 	
-	entree = fopen(argv[1],"r");
-	sortie = fopen(argv[2],"w+");
-	if(entree == NULL || sortie == NULL){
+
+	entree = fopen(argv[2],"r");
+	sortie = fopen(argv[3],"w+");
+	if(entree == NULL||sortie == NULL){
 		printf("main: Erreur d'ouverture du fichier\n");
 		return 1;
 	}
-
-    if (strcmp(argv[3], "histo") == 0) {
-		char ligne[50];
-		double vol_courant;
-		if (strcmp(argv[4], "max") == 0) {
-			Volume_traitement* arbre = NULL;
-			while(fscanf(entree, "%49[^;];%lf\n", ligne,&vol_courant)==2){
-				arbre=ajouter_vol_traitement(arbre,ligne,vol_courant);
+	char ligne_courante[50];
+	double vol_courant;
+	double perte=0;
+    if (strcmp(argv[4], "histo") == 0) {
+		if (strcmp(argv[5], "max") == 0) {
+			Volume_traitement* arbre_max = NULL;
+			while(fscanf(entree, "%49[^;];%lf\n", ligne_courante,&vol_courant)==2){
+				arbre_max = ajouter_vol_traitement(arbre_max,ligne_courante,vol_courant);
 			}
-			infixe_traitement_inverse(arbre,sortie);
+			infixe_traitement_inverse(arbre_max,sortie);
 		}           
-		else if (strcmp(argv[4], "src") == 0) {
-			Volume_traitement* arbre = NULL;
-			while(fscanf(entree, "%49[^;];%lf\n", ligne,&vol_courant)==2){
-				arbre=ajouter_vol_source(arbre,ligne,vol_courant);
+		else if (strcmp(argv[5], "src") == 0) {
+			Volume_traitement* arbre_src = NULL;
+			while(fscanf(entree, "%49[^;];%lf\n", ligne_courante,&vol_courant)==2){
+				arbre_src = ajouter_vol_source(arbre_src,ligne_courante,vol_courant);
 			}
-			infixe_traitement_inverse(arbre,sortie);
+			infixe_traitement_inverse(arbre_src,sortie);
 		}
-		else if (strcmp(argv[4], "reel") == 0) {
-			Volume_reel* arbre = NULL;
-			double perte;
-			while(fscanf(entree, "%49[^;];%lf;%lf\n", ligne,&vol_courant,&perte)==3){
-				arbre=ajouter_vol_reel(arbre,ligne,vol_courant,perte);
+		else if (strcmp(argv[5], "reel") == 0) {
+			Volume_reel* arbre_reel = NULL;
+			while(fscanf(entree, "%49[^;];%lf;%lf\n", ligne_courante,&vol_courant,&perte)==3){
+				arbre_reel=ajouter_vol_reel(arbre_reel,ligne_courante,vol_courant,perte);
 			}
-			infixe_reel_inverse(arbre,sortie);
+			infixe_reel_inverse(arbre_reel,sortie);
 		} 
 		else {
 			printf("Erreur: 'max', 'src' ou 'reel' attendu en 4e argument\n");
 			return 1;
 		}
 	}
-	else if (strcmp(argv[3], "leaks") == 0) {
-        printf("En cours\n");
-        FILE *fichier = fopen("test.csv", "r");
+	else if (strcmp(argv[4], "leaks") == 0) {
+        FILE *fichier = fopen(argv[1], "r");
         if (!fichier) {
-            perror("fopen test.csv");
+            perror("fopen argv 1");
         }
-        FILE *flux = fopen("histo_real.dat", "r"); //remplacer par reel quand on combine
+        /*On créé temporaire_reel car on en a besoin par la suite (le traitement de celui-ci ne sera pas assigné à la sortie contrairement à son homologue dans histo reel)*/
+        FILE *histo_reel = fopen("temporaire_reel","w");
+        Volume_reel* arbre_reel = NULL;
+
+		while(fscanf(entree, "%49[^;];%lf;%lf\n", ligne_courante,&vol_courant,&perte)==3){
+			arbre_reel=ajouter_vol_reel(arbre_reel,ligne_courante,vol_courant,perte);
+		}
+		infixe_reel_inverse(arbre_reel,histo_reel);
+        fclose(histo_reel);
+        fclose(entree);
+        
+        FILE *flux = fopen("temporaire_reel", "r"); 
         if (!flux) {
-            perror("fopen histo_real.dat");
+            perror("fopen histo_reel.dat");
             if (fichier) fclose(fichier);
             return 1;
         }
         int boucle_principale = 0;   int type = 0;
         char ligne[256];  char tmp[256];
-        arbres_fuites *p1;              //
-        infra *p2;                      //
-        arbre *root = NULL; // premiere node avl usine
+        arbres_fuites *p1;
+        infra *p2;
+        arbre* root = NULL;
         while(fgets(ligne, sizeof(ligne), flux)){
             ligne[strcspn(ligne, "\r\n")] = '\0';
             strncpy(tmp, ligne, sizeof(tmp)-1);
@@ -136,11 +145,11 @@ int main(int argc, char* argv[]){
         afficherAVL(root,0);
         while(fgets(ligne, sizeof(ligne), fichier)){
             strcpy(tmp, ligne);
-            int type = detect_type(tmp);
+            type = detect_type(tmp);
             switch(type){
                 case 0:
                     printf("end\n");
-                    return 0;
+                    break;
                 case 1:
                 break;
                 case 2:
@@ -173,9 +182,7 @@ int main(int argc, char* argv[]){
 
 	}
 	else {
-		printf("Erreur: 'histo' ou 'leaks' attendu en 3e argument\n");
+		printf("Erreur: 'histo' ou 'leaks' attendu en 4e argument\n");
 		return 1;
 	}
 }
-
-
