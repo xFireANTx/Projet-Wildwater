@@ -1,5 +1,7 @@
 #!/bin/bash
 
+debut_chrono = $(date +%s%3N)
+
 volume_max(){
     local source="$1"
     awk -F';' '$3 == "-"' "$source" | cut -d';' -f2,4 > temp_volume
@@ -79,4 +81,7 @@ head -n 11 temp_val| tail -n 10 > temp_max
 tail -n 50 temp_val > temp_min
 rm temp_val
 
+fin_chrono =$(date+%s%3N)
+temps_execution = $((fin_chrono - debut_chrono))
 echo "Nom du fichier créé: $Nom_fichier"
+echo "Temps d'execution: $temps_execution"
