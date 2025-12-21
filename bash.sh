@@ -1,7 +1,8 @@
 #!/bin/bash
 
 debut_chrono=$(date +%s%3N)
-
+#les 4 fonctions dépendent du dernière argument, on effectue un filtrage différents selon les arguments pour envoyer un fichier filtré avec les données qui nous intéressent
+#au programme C qui va se charger de les trier et d'appliquer les opérations nécessaire pour avoir le bon fihcier en sortie.
 volume_max(){
     local source="$1"
     awk -F';' '$3 == "-"' "$source" | cut -d';' -f2,4 > temp_volume
@@ -30,8 +31,6 @@ volume_fuite(){
 	local source="$1"
 	local id="$2"
 	awk -F';' '$1 == "-" && $3 != "-" && $4 != "-"' "$source" | cut -d';' -f3-5 > temp_fuite
-	chmod a+rwx affichage_max.sh
-	chmod a+rwx affichage_min.sh
 	./exe "$1" temp_fuite out_fuite leaks "$id"
 	cat out_fuite
 	rm out_fuite temp_fuite
@@ -82,6 +81,8 @@ histo)
 
 	head -n 11 temp_val| tail -n 10 > temp_"$mode"10.dat
 	tail -n 50 temp_val > temp_"$mode"50.dat
+	chmod a+rwx affichage_max.sh
+	chmod a+rwx affichage_min.sh
 	./affichage_max.sh temp_"$mode"10.dat
 	./affichage_min.sh temp_"$mode"50.dat
 	rm temp_val temp_"$mode"10.dat temp_"$mode"50.dat
