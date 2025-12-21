@@ -226,33 +226,23 @@ float recuperer_fuites(racine *usine){
     }
     return total_fuite;
 }
+static void free_node(arbres_fuites *node);
+static void free_arbre_usine(racine *root);
+static void distribute_children(arbres_fuites *children, float parent_flux);
+
 
 void calcule_fuites(racine *usine){
-    if (!usine) {return;}
-    for (racine *r = usine; r; r = r->suivant) {
-        if (!r) continue;
-        if (r->actuelf == NULL) continue;
-        distribute_to_siblings(r->actuelf, r->flux);
+    if (!usine) return;
+
+    // Recursive helper: distribute parent_flux equally among children,
+    // then apply child's fuite percentage and recurse.
+    
+
+    for (racine *r = usine; r; r = r->suivant){
+        // starting point: distribute racine's flux to its direct children
+        distribute_children(r->actuelf, r->flux);
     }
 }
-
-void distribute_to_siblings(arbres_fuites *head, float parent_flux){
-        if (!head) return;
-        int count = 0;
-        for (arbres_fuites *it = head; it; it = it->suivant) count++;
-        if (count == 0) return;
-        float per_child = parent_flux / (float)count;
-        for (arbres_fuites *it = head; it; it = it->suivant) {
-            if (it->structure) {
-                float allocated = per_child;
-                float after_fuite = allocated * (1.0f - (it->structure->fuite / 100.0f));
-                it->structure->flux = after_fuite;
-                distribute_to_siblings(it->actuelf, it->structure->flux);
-            } else {
-                distribute_to_siblings(it->actuelf, 0.0f);
-            }
-        }
-    }
 
 // In-order traversal of the AVL. Calls `visit` for each `racine` node.
 void traverse_avl(arbre *root){
@@ -262,37 +252,41 @@ void traverse_avl(arbre *root){
     traverse_avl(root->fd);
 }
 
-void free_arbre_usine(racine *root){
-    if (!root) return;
-    for(racine *r = root; r; r = r->suivant){
-        racine *temp_racine = r;
-        r = r->suivant;
-        free_node(temp_racine);
-        for(arbres_fuites *s = r->actuelf; s; s = s->suivant){
-            arbres_fuites *temp_storage = s;
-            s = s->suivant;
-            free_node(temp_storage);    
-            for(arbres_fuites *j = s->actuelf; j; j = j->suivant){
-                arbres_fuites *temp_jonction = j;
-                j = j->suivant;
-                free_node(temp_jonction);
-                for(arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant){
-                    arbres_fuites *temp_service = svc;
-                    svc = svc->suivant;
-                    free_node(temp_service);
-                    for(arbres_fuites *m = svc->actuelf; m; m = m->suivant){
-                        arbres_fuites *temp_menage = m;
-                        m = m->suivant;
-                        free_node(temp_menage);
-                    }
-                }
-            }
-        }
+// Recursively free a list of `arbres_fuites` and their sublists.
+static void free_arbres_recursive(arbres_fuites *head){
+    while (head) {
+        arbres_fuites *next = head->suivant;
+        if (head->actuelf) free_arbres_recursive(head->actuelf);
+        if (head->structure) free(head->structure);
+        free(head);
+        head = next;
     }
 }
 
-void free_node(arbres_fuites *node){
-    if (!node) return;
-    free(node->structure);
-    free(node);
+void distribute_children(arbres_fuites *children, float parent_flux){
+        if (!children) return;
+        // count children
+        int count = 0;
+        for (arbres_fuites *c = children; c; c = c->suivant) count++;
+        if (count == 0) return;
+        float per = parent_flux / (float)count;
+        for (arbres_fuites *c = children; c; c = c->suivant){
+            float assigned = per;
+            if (c->structure) {
+                assigned = per * (1.0f - c->structure->fuite / 100.0f);
+                c->structure->flux = assigned;
+            }
+            // recurse to c's children using the flux assigned to this node
+            distribute_children(c->actuelf, c->structure ? c->structure->flux : assigned);
+        }
+    }
+
+// Free an entire racine list and all their attached arbres_fuites.
+void free_arbre_usine(racine *root){
+    while (root) {
+        racine *next = root->suivant;
+        if (root->actuelf) free_arbres_recursive(root->actuelf);
+        free(root);
+        root = next;
+    }
 }
