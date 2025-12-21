@@ -1,142 +1,216 @@
+// basic_functions.c (version finale corrigée)
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "basic_functions.h"
-#include "avl.h"
 #include <string.h>
 
-arbres_fuites *createNode(char *ligne, int type){
+#include "basic_functions.h"
+#include "avl.h"
+
+/* =========================
+   Création / rattachement
+   ========================= */
+
+arbres_fuites *createNode(char *ligne, int type) {
     infra *ancien = remplir_infra(ligne, type);
-    if(ancien==NULL){exit(1);}
-    arbres_fuites *nouveau = malloc(sizeof(arbres_fuites));
-    if(nouveau == NULL){exit (1);}
+    if (ancien == NULL) {
+        fprintf(stderr, "createNode: remplir_infra a échoué\n");
+        exit(1);
+    }
+
+    arbres_fuites *nouveau = (arbres_fuites *)malloc(sizeof(arbres_fuites));
+    if (nouveau == NULL) {
+        fprintf(stderr, "createNode: erreur allocation memoire\n");
+        exit(1);
+    }
+
     nouveau->structure = ancien;
     nouveau->suivant = NULL;
     nouveau->actuelf = NULL;
     return nouveau;
 }
 
-arbres_fuites *addChildfuites(arbres_fuites *parent, arbres_fuites *child){
+/*
+ * Ajoute child dans parent->actuelf (liste chaînée d'enfants).
+ * ✅ Anti-cycle: on refuse d'insérer deux fois le même pointeur.
+ */
+arbres_fuites *addChildfuites(arbres_fuites *parent, arbres_fuites *child) {
     if (parent == NULL || child == NULL) {
-        fprintf(stderr, "addChildfuites: parent or child is NULL\n");
-        return NULL;
+        fprintf(stderr, "addChildfuites: parent ou child NULL\n");
+        return parent;
     }
+
+    for (arbres_fuites *cur = parent->actuelf; cur; cur = cur->suivant) {
+        if (cur == child) {
+            // déjà lié => éviter cycle
+            return parent;
+        }
+    }
+
     child->suivant = parent->actuelf;
     parent->actuelf = child;
     return parent;
 }
 
-infra *remplir_infra(char *line, int type){
+/* =========================
+   Parsing infra
+   ========================= */
+
+infra *remplir_infra(char *line, int type) {
     if (!line) return NULL;
-    infra *new = malloc(sizeof(infra));
-    if(new == NULL){ 
-        fprintf(stderr, "erreur d'allocation memoire\n");
+
+    infra *newi = (infra *)malloc(sizeof(infra));
+    if (newi == NULL) {
+        fprintf(stderr, "remplir_infra: erreur allocation memoire\n");
         return NULL;
     }
-    new->type = type;   
+
+    newi->type = type;
+    newi->fuite = 0.0f;
+    newi->flux  = 0.0f;
+    newi->code_usine[0] = '\0';
+    newi->code_precedent[0] = '\0';
+    newi->code_actuel[0] = '\0';
+
     char *col[5] = {0};
     int i = 0;
+
     char *tmp = strdup(line);
-    if (!tmp) { free(new); return NULL; }
+    if (!tmp) { free(newi); return NULL; }
+
     char *piece = strtok(tmp, ";");
-    while(piece && i < 5){
+    while (piece && i < 5) {
         col[i++] = piece;
         piece = strtok(NULL, ";");
     }
-        if(type == 3){ //storage
-        col[1] = strchr(col[1], '#');
-        if (!col[1]) { free(new); free(tmp); return NULL; }
-        col[1]++;
-        strncpy(new->code_usine, col[1], sizeof(new->code_usine)-1); //la premiere ccase d un storage est vide
-        new->code_usine[sizeof(new->code_usine)-1] = '\0'; 
 
-        strncpy(new->code_precedent, col[1], sizeof(new->code_precedent)-1);
-        new->code_precedent[sizeof(new->code_precedent)-1] = '\0'; 
+    // garde minimale
+    if (i < 3) { free(tmp); free(newi); return NULL; }
 
-        col[2] = strchr(col[2], '#');
-        if (!col[2]) { free(new); free(tmp); return NULL; }
-        col[2]++;
-        strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
-        new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
-    }                                                                   
-    if(type == 4 || type == 5 || type == 6){ // jonction || service || cust
-        col[0] = strchr(col[0], '#');
-        if (!col[0]) { free(new); free(tmp); return NULL; }
-        col[0]++;
-        strncpy(new->code_usine, col[0], sizeof(new->code_usine)-1);
-        new->code_usine[sizeof(new->code_usine)-1] = '\0'; 
+    if (type == 3) { // storage
+        if (!col[1] || !col[2]) { free(tmp); free(newi); return NULL; }
 
-        col[1] = strchr(col[1], '#');
-        if (!col[1]) { free(new); free(tmp); return NULL; }
-        col[1]++;
-        strncpy(new->code_precedent, col[1], sizeof(new->code_precedent)-1);
-        new->code_precedent[sizeof(new->code_precedent)-1] = '\0'; 
+        char *p1 = strchr(col[1], '#');
+        if (!p1) { free(tmp); free(newi); return NULL; }
+        p1++;
 
-        col[2] = strchr(col[2], '#');
-        if (!col[2]) { free(new); free(tmp); return NULL; }
-        col[2]++;
-        strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
-        new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
+        strncpy(newi->code_usine, p1, CODE_SIZE - 1);
+        newi->code_usine[CODE_SIZE - 1] = '\0';
+
+        strncpy(newi->code_precedent, p1, CODE_SIZE - 1);
+        newi->code_precedent[CODE_SIZE - 1] = '\0';
+
+        char *p2 = strchr(col[2], '#');
+        if (!p2) { free(tmp); free(newi); return NULL; }
+        p2++;
+
+        strncpy(newi->code_actuel, p2, CODE_SIZE - 1);
+        newi->code_actuel[CODE_SIZE - 1] = '\0';
     }
-    new->fuite = col[4] ? strtof(col[4], NULL) : 0.0f;
 
-    new->flux = 0;
+    if (type == 4 || type == 5 || type == 6) { // jonction / service / menage
+        if (!col[0] || !col[1] || !col[2]) { free(tmp); free(newi); return NULL; }
+
+        char *p0 = strchr(col[0], '#');
+        if (!p0) { free(tmp); free(newi); return NULL; }
+        p0++;
+
+        strncpy(newi->code_usine, p0, CODE_SIZE - 1);
+        newi->code_usine[CODE_SIZE - 1] = '\0';
+
+        char *p1 = strchr(col[1], '#');
+        if (!p1) { free(tmp); free(newi); return NULL; }
+        p1++;
+
+        strncpy(newi->code_precedent, p1, CODE_SIZE - 1);
+        newi->code_precedent[CODE_SIZE - 1] = '\0';
+
+        char *p2 = strchr(col[2], '#');
+        if (!p2) { free(tmp); free(newi); return NULL; }
+        p2++;
+
+        strncpy(newi->code_actuel, p2, CODE_SIZE - 1);
+        newi->code_actuel[CODE_SIZE - 1] = '\0';
+    }
+
+    if (col[4] && strcmp(col[4], "-") != 0) {
+        newi->fuite = strtof(col[4], NULL);
+    }
+
     free(tmp);
-    return new;
+    return newi;
 }
 
-racine *chercher_avl(const char *code_usine, arbre *root){
+/* =========================
+   Recherche AVL usine
+   ========================= */
+
+racine *chercher_avl(const char *code_usine, arbre *root) {
     if (code_usine == NULL || root == NULL) return NULL;
     if (root->usine == NULL) return NULL;
+
     int cmp = strcmp(code_usine, root->usine->code_usine);
     if (cmp == 0) return root->usine;
     if (cmp < 0) return chercher_avl(code_usine, root->fg);
     return chercher_avl(code_usine, root->fd);
 }
 
-racine *ajouter_arbre_usine(racine *node, arbres_fuites *new){ // on suppose que on a deja compare et trouvé la bonne racine
-    if (node == NULL) return NULL;
-    if (new == NULL) return node;
+/* =========================
+   Rattachement optimisé (anti O(n^4))
+   ========================= */
+
+/*
+ * ✅ Optimisé:
+ * - On stoppe dès qu'on a rattaché newn (return).
+ * - Anti-doublon simple sur l’usine->actuelf (cas type=3).
+ */
+racine *ajouter_arbre_usine(racine *node, arbres_fuites *newn) {
+    if (node == NULL || newn == NULL || newn->structure == NULL) return node;
 
     for (racine *r = node; r != NULL; r = r->suivant) {
-        switch (new->structure->type) {
-            case 3: { // storage: attach to r->actuelf where racine code matches precedent
-                if (r->code_usine && strcmp(r->code_usine, new->structure->code_precedent) == 0) {
-                    if (r->actuelf == NULL) {
-                        r->actuelf = new;
-                        new->suivant = NULL;
-                    } else {
-                        arbres_fuites *s = r->actuelf;
-                        while (s->suivant) s = s->suivant;
-                        s->suivant = new;
-                        new->suivant = NULL;
+        switch (newn->structure->type) {
+
+            case 3: { // storage: parent = racine (usine)
+                if (strcmp(r->code_usine, newn->structure->code_precedent) == 0) {
+                    for (arbres_fuites *cur = r->actuelf; cur; cur = cur->suivant) {
+                        if (cur == newn) return node; // déjà ajouté
+                    }
+                    newn->suivant = r->actuelf;
+                    r->actuelf = newn;
+                    return node; // ✅ stop
+                }
+            } break;
+
+            case 4: { // jonction: parent = storage (dans r->actuelf)
+                for (arbres_fuites *s = r->actuelf; s; s = s->suivant) {
+                    if (s->structure &&
+                        strcmp(s->structure->code_actuel, newn->structure->code_precedent) == 0) {
+                        addChildfuites(s, newn);
+                        return node; // ✅ stop
                     }
                 }
             } break;
 
-            case 4: { // jonction: find matching storage nodes under this racine
-                for (arbres_fuites *s = r->actuelf; s != NULL; s = s->suivant) {
-                    if (s->structure && s->structure->code_actuel && strcmp(s->structure->code_actuel, new->structure->code_precedent) == 0) {
-                        addChildfuites(s, new);
-                    }
-                }
-            } break;
-
-            case 5: { // service: storage -> jonction -> compare
-                for (arbres_fuites *s = r->actuelf; s != NULL; s = s->suivant) {
-                    for (arbres_fuites *j = s->actuelf; j != NULL; j = j->suivant) {
-                        if (j->structure && j->structure->code_actuel && strcmp(j->structure->code_actuel, new->structure->code_precedent) == 0) {
-                            addChildfuites(j, new);
+            case 5: { // service: parent = jonction
+                for (arbres_fuites *s = r->actuelf; s; s = s->suivant) {
+                    for (arbres_fuites *j = s->actuelf; j; j = j->suivant) {
+                        if (j->structure &&
+                            strcmp(j->structure->code_actuel, newn->structure->code_precedent) == 0) {
+                            addChildfuites(j, newn);
+                            return node; // ✅ stop
                         }
                     }
                 }
             } break;
 
-            case 6: { // menage: storage -> jonction -> service -> compare
-                for (arbres_fuites *s = r->actuelf; s != NULL; s = s->suivant) {
-                    for (arbres_fuites *j = s->actuelf; j != NULL; j = j->suivant) {
-                        for (arbres_fuites *svc = j->actuelf; svc != NULL; svc = svc->suivant) {
-                            if (svc->structure && svc->structure->code_actuel && strcmp(svc->structure->code_actuel, new->structure->code_precedent) == 0) {
-                                addChildfuites(svc, new);
+            case 6: { // menage: parent = service
+                for (arbres_fuites *s = r->actuelf; s; s = s->suivant) {
+                    for (arbres_fuites *j = s->actuelf; j; j = j->suivant) {
+                        for (arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant) {
+                            if (svc->structure &&
+                                strcmp(svc->structure->code_actuel, newn->structure->code_precedent) == 0) {
+                                addChildfuites(svc, newn);
+                                return node; // ✅ stop
                             }
                         }
                     }
@@ -147,32 +221,32 @@ racine *ajouter_arbre_usine(racine *node, arbres_fuites *new){ // on suppose que
                 break;
         }
     }
+
+    // non rattaché (CSV incomplet ou ordre différent)
     return node;
 }
 
-/*recup csv
-junction = (nom #code usine (10);nom #code stockage(6);nom #code jonction(9);        ;fuite)
-service =  (nom #code usine (10);nom #code jonction(9);nom #code service(9) ;        ;fuite)
-menage =   (nom #code usine (10);nom #code service(9) ;nom #code menage(10) ;        ;fuite)
-source =   (                    ;nom #code source(10) ;nom #code usine(10)  ;capa_max;fuite)
-storage =  (                    ;nom #code usine (10) ;nom #code stockage(6);        ;fuite)
-usine =    (                    ;nom #code usine (10) ;                     ;capa_max;     )*/
+/* =========================
+   Détection type (inchangé)
+   ========================= */
 
-int empty(const char *s){
+int empty(const char *s) {
     return s == NULL || strcmp(s, "-") == 0;
 }
 
-int code_len(const char *s){
+int code_len(const char *s) {
     const char *p = strchr(s, '#');
     if (!p) return 0;
-    return strlen(p + 1);
+    return (int)strlen(p + 1);
 }
 
-int detect_type(char *line){
+int detect_type(char *line) {
     if (!line) return 0;
+
     char *col[5] = {0};
     int i = 0;
     char *saveptr = NULL;
+
     char *piece = strtok_r(line, ";", &saveptr);
     while (piece && i < 5) {
         col[i++] = piece;
@@ -183,6 +257,7 @@ int detect_type(char *line){
     int l2 = empty(col[1]) ? 0 : code_len(col[1]);
     int l3 = empty(col[2]) ? 0 : code_len(col[2]);
     int c4 = !empty(col[3]);
+
     if (l1 == 0 && l2 == 9 && l3 == 9 && c4) return 1;
     if (l1 == 0 && l2 == 9 && l3 == 0 && c4) return 2;
     if (l1 == 0 && l2 == 9 && l3 == 5) return 3;
@@ -192,39 +267,66 @@ int detect_type(char *line){
     return 0;
 }
 
-//recup fuites pour toutes les usines
-//recup fuites pour une usine donnee
+/* =========================
+   Calcul fuites / flux (anti-cycles)
+   ========================= */
 
-float recuperer_fuites(racine *usine){
-    if(usine == NULL) return -1;
-    float total_fuite = 0;
-    for (arbres_fuites *s = usine->actuelf; s != NULL; s = s->suivant) {
-        for (arbres_fuites *j = s->actuelf; j != NULL; j = j->suivant) {
-            for (arbres_fuites *svc = j->actuelf; svc != NULL; svc = svc->suivant) {
-                for (arbres_fuites *m = svc->actuelf; m != NULL; m = m->suivant) {
-                    total_fuite += m->structure->fuite;
+float recuperer_fuites(racine *usine) {
+    if (usine == NULL) return -1.0f;
+
+    float total_fuite = 0.0f;
+
+    // garde anti-cycle
+    const size_t GUARD_LIMIT = 5000000;
+    size_t steps = 0;
+
+    for (arbres_fuites *s = usine->actuelf; s; s = s->suivant) {
+        if (++steps > GUARD_LIMIT) { fprintf(stderr, "recuperer_fuites: garde anti-cycle\n"); break; }
+        for (arbres_fuites *j = s->actuelf; j; j = j->suivant) {
+            if (++steps > GUARD_LIMIT) { fprintf(stderr, "recuperer_fuites: garde anti-cycle\n"); break; }
+            for (arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant) {
+                if (++steps > GUARD_LIMIT) { fprintf(stderr, "recuperer_fuites: garde anti-cycle\n"); break; }
+                for (arbres_fuites *m = svc->actuelf; m; m = m->suivant) {
+                    if (++steps > GUARD_LIMIT) { fprintf(stderr, "recuperer_fuites: garde anti-cycle\n"); break; }
+                    if (m->structure) total_fuite += m->structure->fuite;
                 }
             }
         }
     }
+
     return total_fuite;
 }
 
-void calcule_fuites(racine *usine){
+void calcule_fuites(racine *usine) {
     if (!usine) return;
+
+    const size_t GUARD_LIMIT = 8000000;
+    size_t steps = 0;
+
     for (racine *r = usine; r; r = r->suivant) {
+        if (++steps > GUARD_LIMIT) { fprintf(stderr, "calcule_fuites: garde anti-cycle racine\n"); break; }
+
         if (!r->actuelf) continue;
+
         float flux_r = r->flux;
+
         for (arbres_fuites *s = r->actuelf; s; s = s->suivant) {
+            if (++steps > GUARD_LIMIT) { fprintf(stderr, "calcule_fuites: garde anti-cycle storage\n"); break; }
             if (s->structure) s->structure->flux = flux_r * (1.0f - s->structure->fuite / 100.0f);
             float flux_s = s->structure ? s->structure->flux : flux_r;
+
             for (arbres_fuites *j = s->actuelf; j; j = j->suivant) {
+                if (++steps > GUARD_LIMIT) { fprintf(stderr, "calcule_fuites: garde anti-cycle jonction\n"); break; }
                 if (j->structure) j->structure->flux = flux_s * (1.0f - j->structure->fuite / 100.0f);
                 float flux_j = j->structure ? j->structure->flux : flux_s;
+
                 for (arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant) {
+                    if (++steps > GUARD_LIMIT) { fprintf(stderr, "calcule_fuites: garde anti-cycle service\n"); break; }
                     if (svc->structure) svc->structure->flux = flux_j * (1.0f - svc->structure->fuite / 100.0f);
                     float flux_svc = svc->structure ? svc->structure->flux : flux_j;
+
                     for (arbres_fuites *m = svc->actuelf; m; m = m->suivant) {
+                        if (++steps > GUARD_LIMIT) { fprintf(stderr, "calcule_fuites: garde anti-cycle menage\n"); break; }
                         if (m->structure) m->structure->flux = flux_svc * (1.0f - m->structure->fuite / 100.0f);
                     }
                 }
@@ -233,12 +335,12 @@ void calcule_fuites(racine *usine){
     }
 }
 
-// In-order traversal of the AVL. Calls `visit` for each `racine` node.
-void traverse_avl(arbre *root){
+/*
+ * ✅ Correction majeure du temps:
+ * ne PAS recalculer plusieurs fois.
+ * Un seul passage global suffit.
+ */
+void traverse_avl(arbre *root) {
     if (root == NULL) return;
     calcule_fuites(root->usine);
-    traverse_avl(root->fg);
-    traverse_avl(root->fd);
 }
-
-
