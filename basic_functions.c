@@ -229,20 +229,44 @@ float recuperer_fuites(racine *usine){
 
 void calcule_fuites(racine *usine){
     if (!usine) return;
+    int iu = 0;
+    int ist = 0;
+    int ij = 0;
+    int isvc = 0;
+    int im = 0;
     for (racine *r = usine; r; r = r->suivant) {
+        iu++;
         if (!r->actuelf) continue;
-        float flux_r = r->flux;
         for (arbres_fuites *s = r->actuelf; s; s = s->suivant) {
-            if (s->structure) s->structure->flux = flux_r * (1.0f - s->structure->fuite / 100.0f);
-            float flux_s = s->structure ? s->structure->flux : flux_r;
+            ist++;
             for (arbres_fuites *j = s->actuelf; j; j = j->suivant) {
-                if (j->structure) j->structure->flux = flux_s * (1.0f - j->structure->fuite / 100.0f);
-                float flux_j = j->structure ? j->structure->flux : flux_s;
+                ij++;
                 for (arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant) {
-                    if (svc->structure) svc->structure->flux = flux_j * (1.0f - svc->structure->fuite / 100.0f);
-                    float flux_svc = svc->structure ? svc->structure->flux : flux_j;
+                    isvc++;
                     for (arbres_fuites *m = svc->actuelf; m; m = m->suivant) {
-                        if (m->structure) m->structure->flux = flux_svc * (1.0f - m->structure->fuite / 100.0f);
+                        im++;
+                    }
+                }
+            }
+        }
+    }
+    
+    for(racine *r = usine; r; r = r->suivant){
+        r->actuelf->structure->flux = r->flux * (1-(r->actuelf->structure->fuite / 100.0f));
+        r = r->suivant;
+        for(arbres_fuites *s = r->actuelf; s; s = s->suivant){
+            s->actuelf->structure->flux = s->structure->flux * (1-(s->actuelf->structure->fuite / 100.0f));
+            s = s->suivant;    
+            for(arbres_fuites *j = s->actuelf; j; j = j->suivant){
+                j->actuelf->structure->flux = j->structure->flux * (1-(j->actuelf->structure->fuite / 100.0f));
+                j = j->suivant;
+                for(arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant){
+                    svc->actuelf->structure->flux = svc->structure->flux * (1-(svc->actuelf->structure->fuite / 100.0f));
+                    svc = svc->suivant;
+                    for(arbres_fuites *m = svc->actuelf; m; m = m->suivant){
+                        m->actuelf->structure->flux = m->structure->flux * (1-(m->actuelf->structure->fuite / 100.0f));
+                        m = m->suivant;
+                        
                     }
                 }
             }
