@@ -263,23 +263,7 @@ static void free_arbres_recursive(arbres_fuites *head){
     }
 }
 
-void distribute_children(arbres_fuites *children, float parent_flux){
-        if (!children) return;
-        // count children
-        int count = 0;
-        for (arbres_fuites *c = children; c; c = c->suivant) count++;
-        if (count == 0) return;
-        float per = parent_flux / (float)count;
-        for (arbres_fuites *c = children; c; c = c->suivant){
-            float assigned = per;
-            if (c->structure) {
-                assigned = per * (1.0f - c->structure->fuite / 100.0f);
-                c->structure->flux = assigned;
-            }
-            // recurse to c's children using the flux assigned to this node
-            distribute_children(c->actuelf, c->structure ? c->structure->flux : assigned);
-        }
-    }
+
 
 // Free an entire racine list and all their attached arbres_fuites.
 void free_arbre_usine(racine *root){
