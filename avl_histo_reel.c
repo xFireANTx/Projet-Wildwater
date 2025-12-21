@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "avl_histo_reel.h"
-
+//Fonction utile pour équilibrer un arbre
 int max_reel(int a, int b){
 	return (a > b)? a:b ;
 }
@@ -19,6 +19,7 @@ int facteur_equilibre_reel(Volume_reel *n){
     return hauteur_reel(n->fg) - hauteur_reel(n->fd);
 }
 
+//Création d'un noeuds classique on applique bien les fuites en % et on divise le volume par 1000 car le resultat est en millions de m3
 Volume_reel* create_vol_reel(char *id, double volume, double fuite){
 	if(id == NULL){
 		printf("vol_reel: id n'est pas définit\n");
@@ -47,6 +48,7 @@ Volume_reel* create_vol_reel(char *id, double volume, double fuite){
 	return nouv;
 }
 
+//fonction de rotation classique et equilinbrage de l'avl
 Volume_reel *rotation_droite_reel(Volume_reel *a){
 
 	if (a == NULL ||a->fg == NULL) return a;
@@ -107,7 +109,7 @@ Volume_reel *equilibrer_reel(Volume_reel *n){
     return n; // déjà équilibré
 }
 
-
+//On parcours l'arbre en fonction de l'identifiant, si le noeud existe deja on ajoute le volume avec les pertes, sinon on créer le noeud
 Volume_reel* ajouter_vol_reel(Volume_reel* arbre, char* id, double volume, double fuite){
 
 	if(id == NULL){
@@ -136,7 +138,7 @@ Volume_reel* ajouter_vol_reel(Volume_reel* arbre, char* id, double volume, doubl
 	return equilibrer_reel(arbre); 
 }
 
-
+//On affiche sur un fichier sortie le resultat du parcours de notre arbre dans l'ordre alphabetique inverse (Z-A)
 void infixe_reel_inverse(Volume_reel* arbre, FILE* sortie){
 	if(arbre == NULL){
 		return;
