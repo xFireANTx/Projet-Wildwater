@@ -55,5 +55,6 @@ racine *chercher_avl(const char *code_usine, arbre *root);
 void traverse_avl(arbre *root);
 void free_arbre_usine(racine *root);
 static void free_arbres_recursive(arbres_fuites *head);
+static void distribute_children(arbres_fuites *children, float parent_flux);
 
 #endif 
