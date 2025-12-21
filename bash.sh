@@ -37,7 +37,7 @@ volume_fuite(){
 
 # Vérification arguments
 if [ $# -ne 3 ]; then
-    echo "Usage: $0 fichier histo|leaks max|src|reel"
+    echo "Attendu: $0 fichier histo|leaks max|src|reel"
     exit 1
 fi
 
@@ -69,6 +69,7 @@ histo)
     esac
 	echo "identifier;$Nom_colonne" > "$Nom_fichier"
 	echo "$donnee" >> "$Nom_fichier"
+	echo "Nom du fichier créé: $Nom_fichier"
 	
 
 #On trie le fichier de tel sorte à avoir les usines triées de la plus grande valeur à la plus petite
@@ -77,20 +78,24 @@ histo)
 		tail -n +2 "$Nom_fichier" | sort -t';' -k2,2 -n -r
 	} > temp_val
 
-	head -n 11 temp_val| tail -n 10 > temp_max
-	tail -n 50 temp_val > temp_min
-	rm temp_val
+	head -n 11 temp_val| tail -n 10 > temp_"$mode"10.dat
+	tail -n 50 temp_val > temp_"$mode"50.dat
+	./affichage_max.sh temp_"$mode"10.dat
+	./affichage_min.sh temp_"$mode"50.dat
+	rm temp_val temp_"$mode"10.dat temp_"$mode"50.dat
 	
     ;;
 leaks)
 	donnee=$(volume_fuite "$fichier_source" "$mode")
 	if [ -f "fuites.dat" ]; then
 		echo "$donnee" >> fuites.dat
+		echo "Données ajoutées dans fuites.dat"
 	else
 		Nom_fichier="fuites.dat"
-    	Nom_colonne="leaks_volume(M.m3/an)"
-    	echo "identifier;$Nom_colonne" > "$Nom_fichier"
-    	echo "$donnee" >> "$Nom_fichier"
+    		Nom_colonne="leaks_volume(M.m3/an)"
+    		echo "identifier;$Nom_colonne" > "$Nom_fichier"
+    		echo "$donnee" >> "$Nom_fichier"
+    		echo "Nom du fichier créé: $Nom_fichier"
     fi
     ;;
 *)
@@ -101,5 +106,5 @@ esac
 
 fin_chrono=$(date +%s%3N)
 temps_execution=$((fin_chrono - debut_chrono))
-echo "Nom du fichier créé: $Nom_fichier"
+
 echo "Temps d'execution: $temps_execution ms"
