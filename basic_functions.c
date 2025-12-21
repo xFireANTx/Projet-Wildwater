@@ -237,12 +237,16 @@ void calcule_fuites(racine *usine){
     for (racine *r = usine; r; r = r->suivant) {
         nombre_enfant_usine++;
         if (!r->actuelf) continue;
+        nombre_enfant_storage = 0;
         for (arbres_fuites *s = r->actuelf; s; s = s->suivant) {
             nombre_enfant_storage++;
+            nombre_enfant_jonction = 0;
             for (arbres_fuites *j = s->actuelf; j; j = j->suivant) {
                 nombre_enfant_jonction++;
+                nombre_enfant_service = 0;
                 for (arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant) {
                     nombre_enfant_service++;
+                    nombre_enfant_menage = 0;
                     for (arbres_fuites *m = svc->actuelf; m; m = m->suivant) {
                         nombre_enfant_menage++;
                     }
@@ -282,51 +286,36 @@ void traverse_avl(arbre *root){
 }
 
 void free_arbre_usine(racine *root){
-        if (!root) return;
-    int nombre_enfant_usine = 0;
-    int nombre_enfant_storage = 0;
-    int nombre_enfant_jonction = 0;
-    int nombre_enfant_service = 0;
-    int nombre_enfant_menage = 0;
-    for (racine *r = root; r; r = r->suivant) {
-        nombre_enfant_usine++;
-        if (!r->actuelf) continue;
-        for (arbres_fuites *s = r->actuelf; s; s = s->suivant) {
-            nombre_enfant_storage++;
-            for (arbres_fuites *j = s->actuelf; j; j = j->suivant) {
-                nombre_enfant_jonction++;
-                for (arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant) {
-                    nombre_enfant_service++;
-                    for (arbres_fuites *m = svc->actuelf; m; m = m->suivant) {
-                        nombre_enfant_menage++;
-                    }
-                }
-            }
-        }
-    }
+    if (!root) return;
     for(racine *r = root; r; r = r->suivant){
         racine *temp_racine = r;
         r = r->suivant;
-        free(temp_racine);
+        free_node(temp_racine);
         for(arbres_fuites *s = r->actuelf; s; s = s->suivant){
             arbres_fuites *temp_storage = s;
             s = s->suivant;
-            free(temp_storage);    
+            free_node(temp_storage);    
             for(arbres_fuites *j = s->actuelf; j; j = j->suivant){
                 arbres_fuites *temp_jonction = j;
                 j = j->suivant;
-                free(temp_jonction);
+                free_node(temp_jonction);
                 for(arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant){
                     arbres_fuites *temp_service = svc;
                     svc = svc->suivant;
-                    free(temp_service);
+                    free_node(temp_service);
                     for(arbres_fuites *m = svc->actuelf; m; m = m->suivant){
                         arbres_fuites *temp_menage = m;
                         m = m->suivant;
-                        free(temp_menage);
+                        free_node(temp_menage);
                     }
                 }
             }
         }
     }
+}
+
+void free_node(arbres_fuites *node){
+    if (!node) return;
+    free(node->structure);
+    free(node);
 }
