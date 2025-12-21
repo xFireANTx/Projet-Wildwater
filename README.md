@@ -21,7 +21,8 @@ ________________________________________________________________________________
 - basic_functions.c / basic_functions.h` : gestion des infrastructures et calcul des flux / fuites  
 - avl_histo_traitement.c / avl_histo_traitement.j : calcul des volumes maximaux et sources  
 - avl_histo_reel.c : calcul des volumes réels 
-- Makefile : compilation du projet  
+- Makefile : compilation du projet
+- Dossier tests: contient des images png + fichiers.dat de notre programme sur le fichier d'entrée "c-wildwater_v3.dat"
 ___________________________________________________________________________________________________________________
 
 ## Compilation et exécution LINUX
