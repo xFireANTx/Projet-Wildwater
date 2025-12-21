@@ -160,3 +160,13 @@ Volume_traitement *equilibrer_traitement(Volume_traitement *n){
 
     return n; // déjà équilibré
 }
+
+void freetree_traitement(Volume_traitement* arbre){
+	if(arbre->fg != NULL){
+		freetree_traitement(arbre->fg);
+	}
+	if(arbre->fd != NULL){
+		freetree_traitement(arbre->fd);
+	}
+	free(arbre);
+}
