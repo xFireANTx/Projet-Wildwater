@@ -20,16 +20,8 @@ arbres_fuites *addChildfuites(arbres_fuites *parent, arbres_fuites *child){
         fprintf(stderr, "addChildfuites: parent or child is NULL\n");
         return NULL;
     }
-    // attach `child` under parent's actuelf list
-    if (parent->actuelf == NULL) {
-        parent->actuelf = child;
-        child->suivant = NULL;
-        return parent;
-    }
-    arbres_fuites *cur = parent->actuelf;
-    while (cur->suivant != NULL) cur = cur->suivant;
-    cur->suivant = child;
-    child->suivant = NULL;
+    child->suivant = parent->actuelf;
+    parent->actuelf = child;
     return parent;
 }
 
@@ -180,33 +172,24 @@ int detect_type(char *line){
     if (!line) return 0;
     char *col[5] = {0};
     int i = 0;
-    char *tmp = strdup(line);
-    if (!tmp) return 0;
-    char *piece = strtok(tmp, ";");
+    char *saveptr = NULL;
+    char *piece = strtok_r(line, ";", &saveptr);
     while (piece && i < 5) {
         col[i++] = piece;
-        piece = strtok(NULL, ";");
+        piece = strtok_r(NULL, ";", &saveptr);
     }
 
     int l1 = empty(col[0]) ? 0 : code_len(col[0]);
     int l2 = empty(col[1]) ? 0 : code_len(col[1]);
     int l3 = empty(col[2]) ? 0 : code_len(col[2]);
     int c4 = !empty(col[3]);
-    int result = 0;
-    if(l1 == 0 && l2 == 9 && l3 == 9 && c4) //source
-        result = 1;
-    else if(l1 == 0 && l2 == 9 && l3 == 0 && c4) //usine
-        result = 2;
-    else if(l1 == 0 && l2 == 9 && l3 == 5) //storage
-        result = 3;
-    else if(l1 == 9 && l2 == 5 && l3 == 8) //jonction
-        result = 4;
-    else if(l1 == 9 && l2 == 8 && l3 == 9) //service
-        result = 5;
-    else if(l1 == 9 && l2 == 9 && l3 == 10) //menage
-        result = 6;
-    free(tmp);
-    return result;
+    if (l1 == 0 && l2 == 9 && l3 == 9 && c4) return 1;
+    if (l1 == 0 && l2 == 9 && l3 == 0 && c4) return 2;
+    if (l1 == 0 && l2 == 9 && l3 == 5) return 3;
+    if (l1 == 9 && l2 == 5 && l3 == 8) return 4;
+    if (l1 == 9 && l2 == 8 && l3 == 9) return 5;
+    if (l1 == 9 && l2 == 9 && l3 == 10) return 6;
+    return 0;
 }
 
 //recup fuites pour toutes les usines

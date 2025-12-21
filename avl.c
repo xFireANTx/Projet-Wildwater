@@ -89,9 +89,7 @@ arbre *creer_noeud_arbre(char *ligne){
 
 
 int hauteur(arbre *n) {
-	if(n == NULL){
-		return 0;
-	}
+    if(n == NULL) return 0;
     return n->hauteur;
 }
 
@@ -131,33 +129,29 @@ arbre *ajouter_avl_flux(arbre *node, char *ligne){
     	n->hauteur = 1;
         return n;  
     }
-    char *tmp = strdup(ligne);
-    if (!tmp) return node;
     int i = 0;
-    char *piece = strtok(tmp, ";");
     char *col[2] = {NULL, NULL};
+    char *saveptr = NULL;
+    char *piece = strtok_r(ligne, ";", &saveptr);
     while (piece && i < 2) {
         col[i++] = piece;
-        piece = strtok(NULL, ";");
+        piece = strtok_r(NULL, ";", &saveptr);
     }
-    if (!col[0]) { free(tmp); return node; }
+    if (!col[0]) return node;
     char *p = strchr(col[0], '#');
-    if (!p) { free(tmp); return node; }
+    if (!p) return node;
     p++;
     char code[CODE_SIZE];
     strncpy(code, p, sizeof(code) - 1);
     code[sizeof(code) - 1] = '\0';
     if (strcmp(code, node->usine->code_usine) == 0) {
-        // Meme usine: Mise a jour flux au lieu de sortir
         if (col[1]) node->usine->flux = strtof(col[1], NULL);
-        free(tmp);
         return node;
     } else if (strcmp(code, node->usine->code_usine) < 0) {
         node->fg = ajouter_avl_flux(node->fg, ligne);
     } else {
         node->fd = ajouter_avl_flux(node->fd, ligne);
     }
-    free(tmp);
     node->hauteur = 1 + max(hauteur(node->fg), hauteur(node->fd));
     return equilibrer(node);
 }
