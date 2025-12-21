@@ -36,7 +36,7 @@ volume_fuite(){
 	rm out_fuite temp_fuite
 }
 
-# Vérification arguments
+# Vérification des arguments et du type de ceci
 if [ $# -ne 3 ]; then
     echo "Attendu: $0 fichier histo|leaks max|src|reel"
     exit 1
@@ -45,6 +45,11 @@ fi
 fichier_source="$1"
 histo_leaks="$2"
 mode="$3"
+
+if [ ! -f "$1" ]; then
+	echo "Le fichier "$1" n'existe pas"
+	exit 1
+fi
 
 case "$histo_leaks" in
 histo)
@@ -92,6 +97,8 @@ histo)
 	rm temp_val temp_"$mode"10.dat temp_"$mode"50.dat
 	
     ;;
+#On ajoute les données obtenus après le filtrage et le traitement dans le programme c dans fuites.dat s'il existe, 
+#on créer le fichier fuites.dat s'il n'existe pas 
 leaks)
 	donnee=$(volume_fuite "$fichier_source" "$mode")
 	if [ -f "fuites.dat" ]; then
@@ -111,6 +118,7 @@ leaks)
     ;;
 esac
 
+#Calcul du temps total d'exécution à partir de la date au début et à la fin du programme
 fin_chrono=$(date +%s%3N)
 temps_execution=$((fin_chrono - debut_chrono))
 
