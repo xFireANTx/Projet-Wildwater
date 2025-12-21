@@ -246,29 +246,30 @@ void calcule_fuites(racine *usine){
                     for (arbres_fuites *m = svc->actuelf; m; m = m->suivant) {
                         nombre_enfant_menage++;
                     }
-                }
-            }
-        }
-    }
-    for(racine *r = usine; r; r = r->suivant){
-        r->actuelf->structure->flux = (r->flux/nombre_enfant_usine) * (1-(r->actuelf->structure->fuite / 100.0f));
-        r = r->suivant;
-        for(arbres_fuites *s = r->actuelf; s; s = s->suivant){
-            s->actuelf->structure->flux = (s->structure->flux/nombre_enfant_storage) * (1-(s->actuelf->structure->fuite / 100.0f));
-            s = s->suivant;    
-            for(arbres_fuites *j = s->actuelf; j; j = j->suivant){
-                j->actuelf->structure->flux = (j->structure->flux/nombre_enfant_jonction) * (1-(j->actuelf->structure->fuite / 100.0f));
-                j = j->suivant;
-                for(arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant){
-                    svc->actuelf->structure->flux = (svc->structure->flux/nombre_enfant_service) * (1-(svc->actuelf->structure->fuite / 100.0f));
-                    svc = svc->suivant;
                     for(arbres_fuites *m = svc->actuelf; m; m = m->suivant){
                         m->actuelf->structure->flux = (m->structure->flux/nombre_enfant_menage) * (1-(m->actuelf->structure->fuite / 100.0f));
                         m = m->suivant;
                     }
                 }
+                for(arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant){
+                    svc->actuelf->structure->flux = (svc->structure->flux/nombre_enfant_service) * (1-(svc->actuelf->structure->fuite / 100.0f));
+                    svc = svc->suivant;
+                }
+            }
+            for(arbres_fuites *j = s->actuelf; j; j = j->suivant){
+                j->actuelf->structure->flux = (j->structure->flux/nombre_enfant_jonction) * (1-(j->actuelf->structure->fuite / 100.0f));
+                j = j->suivant;
             }
         }
+        for(arbres_fuites *s = r->actuelf; s; s = s->suivant){
+            s->actuelf->structure->flux = (s->structure->flux/nombre_enfant_storage) * (1-(s->actuelf->structure->fuite / 100.0f));
+            s = s->suivant;    
+        }
+    }
+    for(racine *r = usine; r; r = r->suivant){
+        r->actuelf->structure->flux = (r->flux/nombre_enfant_usine) * (1-(r->actuelf->structure->fuite / 100.0f));
+        r = r->suivant;
+
     }
 }
 
@@ -322,7 +323,7 @@ void free_arbre_usine(racine *root){
                     for(arbres_fuites *m = svc->actuelf; m; m = m->suivant){
                         arbres_fuites *temp_menage = m;
                         m = m->suivant;
-                        free(temp_menage);
+                        free_n(temp_menage);
                     }
                 }
             }
