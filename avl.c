@@ -5,20 +5,34 @@
 #include <string.h>
 
 //arbres
-arbre *rotation_droite(arbre *a){
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+arbre *rotation_droite(arbre *a) {
     arbre *b = a->fg;
     arbre *temp = b->fd;
+
     b->fd = a;
     a->fg = temp;
+
+    a->hauteur = 1 + max(hauteur(a->fg), hauteur(a->fd));
+    b->hauteur = 1 + max(hauteur(b->fg), hauteur(b->fd));
+
     return b;
 }
 
 
-arbre *rotation_gauche(arbre* a){
+arbre *rotation_gauche(arbre *a) {
     arbre *b = a->fd;
     arbre *temp = b->fg;
+
     b->fg = a;
     a->fd = temp;
+
+    a->hauteur = 1 + max(hauteur(a->fg), hauteur(a->fd));
+    b->hauteur = 1 + max(hauteur(b->fg), hauteur(b->fd));
+
     return b;
 }
 
@@ -68,19 +82,17 @@ arbre *creer_noeud_arbre(char *ligne){
 
     nouveau->fg = NULL;
     nouveau->fd = NULL;
+    nouveau->hauteur = 1;
 
     return nouveau;
 }
 
 
-int hauteur(arbre *n){
-    if (n == NULL)
-        return 0;
-
-    int hg = hauteur(n->fg);
-    int hd = hauteur(n->fd);
-
-    return 1 + (hg > hd ? hg : hd);
+int hauteur(arbre *n) {
+	if(n == NULL){
+		return 0;
+	}
+    return n->hauteur;
 }
 
 int facteur_equilibre(arbre *n){
@@ -115,7 +127,9 @@ arbre *equilibrer(arbre *n){
 
 arbre *ajouter_avl_flux(arbre *node, char *ligne){
     if (node == NULL) {
-        return creer_noeud_arbre(ligne);  
+    	arbre *n = creer_noeud_arbre(ligne);
+    	n->hauteur = 1;
+        return n;  
     }
     char *tmp = strdup(ligne);
     if (!tmp) return node;
@@ -134,7 +148,7 @@ arbre *ajouter_avl_flux(arbre *node, char *ligne){
     strncpy(code, p, sizeof(code) - 1);
     code[sizeof(code) - 1] = '\0';
     if (strcmp(code, node->usine->code_usine) == 0) {
-        // same usine: update flux instead of exiting
+        // Meme usine: Mise a jour flux au lieu de sortir
         if (col[1]) node->usine->flux = strtof(col[1], NULL);
         free(tmp);
         return node;
@@ -144,9 +158,9 @@ arbre *ajouter_avl_flux(arbre *node, char *ligne){
         node->fd = ajouter_avl_flux(node->fd, ligne);
     }
     free(tmp);
+    node->hauteur = 1 + max(hauteur(node->fg), hauteur(node->fd));
     return equilibrer(node);
 }
-
 
 
 
