@@ -148,5 +148,15 @@ void infixe_reel_inverse(Volume_reel* arbre, FILE* sortie){
 	infixe_reel_inverse(arbre->fd,sortie);
 }
 
+void freetree_reel(Volume_reel* arbre){
+	if(arbre->fg != NULL){
+		freetree_reel(arbre->fg);
+	}
+	if(arbre->fd != NULL){
+		freetree_reel(arbre->fd);
+	}
+	free(arbre);
+}
+
 
 
