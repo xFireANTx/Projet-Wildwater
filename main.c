@@ -63,7 +63,7 @@ void afficher_noeud_fuites(const arbres_fuites *n) {
 
     printf("}\n");
 }
-
+//Argv: 0: ./exe  1:Projet-wildwater.dat 2:fichier entree 3:fichier sortie(recup par le bash) 4: histo/leaks 5:max/src/reel ou "Nom_usine #identifiant"
 int main(int argc, char* argv[]){
     if(argc != 6){
 		printf("main: Erreur pas le bon nombre de fichiers apres l'executable\nFormat attendue: ./exe {fichier_complet} {fichier_entree.dat} {fichier_sortie.dat} {histo/leaks} {max/src/reel}\n");
@@ -109,91 +109,105 @@ int main(int argc, char* argv[]){
 			return 1;
 		}
 	}
-	else if (strcmp(argv[4], "leaks") == 0) {
-        FILE *fichier = fopen(argv[1], "r");
-        if (!fichier) {
-            perror("fopen argv 1");
-        }
-        /*On créé temporaire_reel car on en a besoin par la suite (le traitement de celui-ci ne sera pas assigné à la sortie contrairement à son homologue dans histo reel)*/
-        FILE *histo_reel = fopen("temporaire_reel","w");
-        Volume_reel* arbre_reel = NULL;
+	else if (strcmp(argv[4], "leaks") == 0) { 
+		FILE *fichier = fopen(argv[1], "r");
+		if (!fichier) {
+		    perror("fopen argv 1");
+		}
+		/*On créé temporaire_reel car on en a besoin par la suite (le traitement de celui-ci ne sera pas assigné à la sortie contrairement à son homologue dans histo reel)*/
+		FILE *histo_reel = fopen("temporaire_reel","w");//On met les valeurs reelles qui parviennent à l'usine de traitement 
+		Volume_reel* arbre_reel = NULL;
 
 		while(fscanf(entree, "%49[^;];%lf;%lf\n", ligne_courante,&vol_courant,&perte)==3){
 			arbre_reel=ajouter_vol_reel(arbre_reel,ligne_courante,vol_courant,perte);
 		}
 		infixe_reel_inverse(arbre_reel,histo_reel);
-        fclose(histo_reel);
-        fclose(entree);
-        
-        FILE *flux = fopen("temporaire_reel", "r"); 
-        if (!flux) {
-            perror("fopen histo_reel.dat");
-            if (fichier) fclose(fichier);
-            return 1;
-        }
-        int boucle_principale = 0;   int type = 0;
-        char ligne[256];  char tmp[256];
-        char *code_usine_recherché;
-        strcpy(code_usine_recherché, argv[5]); 
-        arbres_fuites *p1;              
-        arbre *root = NULL; // premiere node avl usine
-        infra *p2;
-        while(fgets(ligne, sizeof(ligne), flux)){
-            ligne[strcspn(ligne, "\r\n")] = '\0';
-            strncpy(tmp, ligne, sizeof(tmp)-1);
-            tmp[sizeof(tmp)-1] = '\0';
-            root = ajouter_avl_flux(root, tmp);
-        }
-        while(fgets(ligne, sizeof(ligne), fichier)){
-            strcpy(tmp, ligne);
-            type = detect_type(tmp);
-            switch(type){
-                case 0:
-                    printf("end\n");
-                    break;
-                case 1:
-                break;
+		fclose(histo_reel);
+		fclose(entree);
+		
+		FILE *flux = fopen("temporaire_reel", "r"); 
+		if (!flux) {
+		    perror("fopen histo_reel.dat");
+		    if (fichier) fclose(fichier);
+		    return 1;
+		}
+		int boucle_principale = 0;   int type = 0;
+		char ligne[256];  char tmp[256];
+		char *code_usine_recherché = NULL;
+		code_usine_recherché = malloc(strlen(argv[5])+1);
+		if(code_usine_recherché == NULL){
+			printf("Erreur alloc memoire code_usine\n");
+			exit(1);
+		}
+		strcpy(code_usine_recherché, argv[5]); 
+		arbres_fuites *p1;              
+		arbre *root = NULL; // premiere node avl usine
+		infra *p2;
+		while(fgets(ligne, sizeof(ligne), flux)){
+		    ligne[strcspn(ligne, "\r\n")] = '\0';
+		    strncpy(tmp, ligne, sizeof(tmp)-1);
+		    tmp[sizeof(tmp)-1] = '\0';
+		    root = ajouter_avl_flux(root, tmp);
+		}
+		
+		while(fgets(ligne, sizeof(ligne), fichier)){
+		    strcpy(tmp, ligne);
+		    type = detect_type(tmp);
+		    switch(type){
+		        case 0:
+		            printf("end\n");
+		            break;
+		        case 1:
+		        break;
 
-                case 2:
-                break;
+		        case 2:
+		        break;
 
-                case 3:// stockage
-                    printf("3\n");
-                    p1 = createNode(ligne, 3);
-                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
-                break;
+		        case 3:// stockage
+		            p1 = createNode(ligne, 3);
+		            ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
+		        break;
 
-                case 4://jonction
-                    printf("4\n");
-                    p1 = createNode(ligne, 4);
-                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
-                break;
+		        case 4://jonction
+		            p1 = createNode(ligne, 4);
+		            ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
+		        break;
 
-                case 5://service
-                    printf("5\n");
-                    p1 = createNode(ligne, 5);
-                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
-                break;
+		        case 5://service
+		            p1 = createNode(ligne, 5);
+		            ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
+		        break;
 
-                case 6://menage
-                    printf("6\n");
-                    p1 = createNode(ligne, 6);
-                    ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
-                break;
-            }
-        }  
-        if (flux) fclose(flux);
-        if (fichier) fclose(fichier);
-        float total_fuite;
-        traverse_avl(root); // calcule les fuites une fois que toutes les infrastructures sont ajoutées
-        if (!code_usine_recherché) { total_fuite = -1; }
-        code_usine_recherché = strchr(code_usine_recherché, '#');
-        if (code_usine_recherché) { code_usine_recherché++; }
+		        case 6://menage
+		            p1 = createNode(ligne, 6);
+		            ajouter_arbre_usine(chercher_avl(p1->structure->code_usine, root), p1);
+		        break;
+		    }
+		}  
+		if (flux) fclose(flux);
+		//Suppresion du fichier temporaire 
+		if(remove("temporaire_reel") != 0){
+   		perror("Erreur suppression temporaire_reel");
+		} 
+		if (fichier) fclose(fichier);
+		float total_fuite;
+		traverse_avl(root); // calcule les fuites une fois que toutes les infrastructures sont ajoutées
+		if (!code_usine_recherché) { total_fuite = -1; }
+		else{
+			code_usine_recherché = strchr(code_usine_recherché, '#'); 
+			if (code_usine_recherché) { code_usine_recherché++; }
 
-        total_fuite = recuperer_fuites(chercher_avl(code_usine_recherché, root));
+			total_fuite = recuperer_fuites(chercher_avl(code_usine_recherché, root));
+			
+			
+		}
+		printf("Ajout\n");
+		fprintf(sortie, "%s;%f\n",argv[5],total_fuite);
 	}
 	else {
 		printf("Erreur: 'histo' ou 'leaks' attendu en 4e argument\n");
 		return 1;
 	}
+	fclose(sortie);
+	
 }
