@@ -234,17 +234,11 @@ static void distribute_children(arbres_fuites *children, float parent_flux);
 void calcule_fuites(racine *usine){
     if (!usine) return;
 
-    // Recursive helper: distribute parent_flux equally among children,
-    // then apply child's fuite percentage and recurse.
-    
 
     for (racine *r = usine; r; r = r->suivant){
-        // starting point: distribute racine's flux to its direct children
         distribute_children(r->actuelf, r->flux);
     }
 }
-
-// In-order traversal of the AVL. Calls `visit` for each `racine` node.
 void traverse_avl(arbre *root){
     if (root == NULL) return;
     calcule_fuites(root->usine);
@@ -252,7 +246,6 @@ void traverse_avl(arbre *root){
     traverse_avl(root->fd);
 }
 
-// Recursively free a list of `arbres_fuites` and their sublists.
 static void free_arbres_recursive(arbres_fuites *head){
     while (head) {
         arbres_fuites *next = head->suivant;
@@ -264,8 +257,6 @@ static void free_arbres_recursive(arbres_fuites *head){
 }
 
 
-
-// Free an entire racine list and all their attached arbres_fuites.
 void free_arbre_usine(racine *root){
     while (root) {
         racine *next = root->suivant;

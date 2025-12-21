@@ -53,6 +53,7 @@ racine *chercher_avl(const char *code_usine, arbre *root);
 
 // Traverse the AVL in-order and perform per-node action
 void traverse_avl(arbre *root);
-
+void free_arbre_usine(racine *root);
+static void free_arbres_recursive(arbres_fuites *head);
 
 #endif 
