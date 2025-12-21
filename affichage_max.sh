@@ -11,7 +11,7 @@ if [ ! -f "$datafile" ]; then
     echo "Fichier $datafile introuvable"
     exit 1
 fi
-
+#on récupère  la partie temp_max10 dans base
 base=$(basename "$datafile" .dat)
 
 mode=${base#temp_}
