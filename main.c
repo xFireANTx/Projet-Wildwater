@@ -8,10 +8,6 @@
 #include "avl_histo_reel.h"
 #include "avl_histo_traitement.h"
 
-
-//Argv attendu : 0: ./exe1: fichier_complet.csv 2: fichier_entree_filtré.dat 3: fichier_sortie.dat 4: histo | leaks 5: max | src | reel  OU  "Facility complex #RH400057F"
-
-
 static void strip_newline(char *s) {
     if (!s) return;
     s[strcspn(s, "\r\n")] = '\0';
@@ -24,11 +20,23 @@ static const char *extract_code_after_hash(const char *full_id) {
     return p + 1;
 }
 
+/*L'exécutable prend 6 argument: 
+Argv attendu : 0: ./exe 
+1: fichier_complet.csv 
+	2: fichier_entree_filtré.dat 
+	3: fichier_sortie.dat
+	4: histo | leaks 
+	5: max | src | reel  OU  "Facility complex #RH400057F"
+On récupère les données qui nous intéresse dans sortie selon l'argument 4 et 5 d'entrée*/
+/*pour histo, on construit un avl d'un fichier filtré passé en arg 2, les fichiers histo_max et histo_src étant identique après le filtrage,
+ on utilise les mêmes fonctions hormis une différentes pour ces deux cas. Ces fonctions sont contenus dans avl_histo_traitement.
+ En ce qui concerne le cas reel et leaks, on a besoin du même fichier de sortie créés à partir de l'avl_histo_reel. Dans le cas de reel
+ on renvoie directement le fichier sur la sortie, pour leaks on effectue plus de traitement*/
 int main(int argc, char* argv[]) {
     if (argc != 6) {
         fprintf(stderr,
                 "Erreur: mauvais nombre d'arguments.\n"
-                "Format: ./exe {fichier_complet.csv} {fichier_entree.dat} {fichier_sortie.dat} {histo|leaks} {max|src|reel|\"Facility complex #...\"}\n");
+                "Format: ./exe {fichier_complet.csv} {fichier_entree.dat} {fichier_sortie.dat} {histo|leaks} {max|src|reel| 'Facility complex #...'}\n");
         return 1;
     }
 
@@ -40,7 +48,7 @@ int main(int argc, char* argv[]) {
         if (sortie) fclose(sortie);
         return 1;
     }
-
+	//partie histo 
     if (strcmp(argv[4], "histo") == 0) {
 
         char ligne_courante[256];
@@ -49,10 +57,11 @@ int main(int argc, char* argv[]) {
 
         if (strcmp(argv[5], "max") == 0) {
             Volume_traitement* arbre_max = NULL;
-
+			//recupere le fichier filtrer et creer un avl
             while (fscanf(entree, "%255[^;];%lf\n", ligne_courante, &vol_courant) == 2) {
                 arbre_max = ajouter_vol_traitement(arbre_max, ligne_courante, vol_courant);
             }
+			//trie dans l'ordre lexicographique inverse
             infixe_traitement_inverse(arbre_max, sortie);
         }
         else if (strcmp(argv[5], "src") == 0) {
@@ -83,8 +92,9 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
+	//partie leaks
     if (strcmp(argv[4], "leaks") == 0) {
-
+		//Même processus que dans histo reel
         FILE *fichier = fopen(argv[1], "r");
         if (!fichier) {
             fprintf(stderr, "Erreur ouverture fichier complet: %s\n", argv[1]);
@@ -119,6 +129,7 @@ int main(int argc, char* argv[]) {
         fclose(entree);
         entree = NULL;
 
+		//Nouveau traitement à partir du fichier obtenu
         FILE *flux = fopen(tmpname, "r");
         if (!flux) {
             fprintf(stderr, "Erreur réouverture du fichier temporaire.\n");
@@ -127,7 +138,7 @@ int main(int argc, char* argv[]) {
             remove(tmpname);
             return 1;
         }
-
+		
         arbre *root = NULL;
         char ligne_flux[256];
         char tmp[256];
