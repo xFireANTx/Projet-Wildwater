@@ -1,5 +1,3 @@
-#ifndef AVL_HISTO
-	#define AVL_HISTO
 #ifndef AVL_HISTO_REEL
 	#define AVL_HISTO_REEL
 	
@@ -25,8 +23,7 @@
 	Volume_reel *rotation_gauche_reel(Volume_reel *a);
 	Volume_reel *rotation_droite_gauche_reel(Volume_reel *a);
 	Volume_reel *rotation_gauche_droite_reel(Volume_reel *a);
-	
 
-#endif
+	void freetree_reel(Volume_reel* arbre);
 
 #endif
