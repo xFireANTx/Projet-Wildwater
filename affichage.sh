@@ -13,17 +13,21 @@ if [ ! -f "$datafile" ]; then
 fi
 
 base=$(basename "$datafile" .dat)
-output="${base}.png"
+
+mode=${base#temp_}
+mode=${mode%50}
+
+output="histo_${mode}50.png"
 
 case $base in
-    histo_max)
-        title="Volume maximal des usines"
+    temp_max50)
+        title="Volume maximal de traitement des usines"
         ;;
-    histo_src)
-        title="Volume total capté par les usines"
+    temp_src50)
+        title="Volume total capté par les usines (sans les pertes)"
         ;;
-    histo_real)
-        title="Volume réel traité par les usines"
+    temp_reel50)
+        title="Volume réel traité par les usines (capté avec les pertes)"
         ;;
     *)
         echo "Nom de fichier non reconnu"
@@ -32,7 +36,7 @@ case $base in
 esac
 
 gnuplot << EOF
-set terminal png size 1200,600
+set terminal png size 1800,900
 set output "$output"
 set datafile separator ";"
 
@@ -40,7 +44,7 @@ set style data histograms
 set style fill solid 0.8 border -1
 set boxwidth 0.9
 
-set xtics rotate by -45
+set xtics rotate by -70
 set grid ytics
 
 set title "$title"
