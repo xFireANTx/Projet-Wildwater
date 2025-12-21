@@ -15,23 +15,23 @@ ________________________________________________________________________________
 __________________________________________________________________________________________________________________
 
 ## Fichiers importants
-1- bash.sh : point d’entrée du programme. Script permettant de lancer les différents modes histo et leaks.
-2- main.c : programme principal appelé par le script. 
-3- avl.c / avl.h : implémentation des arbres AVL utilisés pour le tri et la recherche  
-4- basic_functions.c / basic_functions.h` : gestion des infrastructures et calcul des flux / fuites  
-5- avl_histo_traitement.c / avl_histo_traitement.j : calcul des volumes maximaux et sources  
-6- avl_histo_reel.c : calcul des volumes réels 
-7- Makefile : compilation du projet  
+- bash.sh : point d’entrée du programme. Script permettant de lancer les différents modes histo et leaks.
+- main.c : programme principal appelé par le script.
+- avl.c / avl.h : implémentation des arbres AVL utilisés pour le tri et la recherche  
+- basic_functions.c / basic_functions.h` : gestion des infrastructures et calcul des flux / fuites  
+- avl_histo_traitement.c / avl_histo_traitement.j : calcul des volumes maximaux et sources  
+- avl_histo_reel.c : calcul des volumes réels 
+- Makefile : compilation du projet  
 ___________________________________________________________________________________________________________________
 
 ## Compilation et exécution LINUX
 
 make / make clean
 
-./bash.sh "Nom_fichier.dat" histo max
-./bash.sh "Nom_fichier.dat" histo src
-./bash.sh "Nom_fichier.dat" histo reel
-./bash.sh "Nom_fichier.dat" leaks "usine#identifiant"
+- ./bash.sh "Nom_fichier.dat" histo max
+- ./bash.sh "Nom_fichier.dat" histo src
+- ./bash.sh "Nom_fichier.dat" histo reel
+- ./bash.sh "Nom_fichier.dat" leaks "usine#identifiant"
 
 PS: si le script n'est pas exécutable --> chmod a+x bash.sh
 ___________________________________________________________________________________________________________________
