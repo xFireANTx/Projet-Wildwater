@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "avl_histo_traitement.h"
-
+//Les fonctions utilisés ici sont très semblable à celle d'avl_histo_reel.c. Référez-vous donc aux commentaires d'avl_histo_reel.c
 int max_traitement(int a, int b){
 	return (a > b)? a:b ;
 }
