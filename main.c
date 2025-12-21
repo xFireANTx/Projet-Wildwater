@@ -63,6 +63,7 @@ int main(int argc, char* argv[]) {
             }
 			//trie dans l'ordre lexicographique inverse
             infixe_traitement_inverse(arbre_max, sortie);
+			freetree_traitement(arbre_max);
         }
         else if (strcmp(argv[5], "src") == 0) {
             Volume_traitement* arbre_src = NULL;
@@ -71,6 +72,7 @@ int main(int argc, char* argv[]) {
                 arbre_src = ajouter_vol_source(arbre_src, ligne_courante, vol_courant);
             }
             infixe_traitement_inverse(arbre_src, sortie);
+			freetree_traitement(arbre_src);
         }
         else if (strcmp(argv[5], "reel") == 0) {
             Volume_reel* arbre_reel = NULL;
@@ -79,6 +81,7 @@ int main(int argc, char* argv[]) {
                 arbre_reel = ajouter_vol_reel(arbre_reel, ligne_courante, vol_courant, perte);
             }
             infixe_reel_inverse(arbre_reel, sortie);
+			freetree_reel(arbre_reel);
         }
         else {
             fprintf(stderr, "Erreur: mode histo attendu: max | src | reel\n");
@@ -125,6 +128,7 @@ int main(int argc, char* argv[]) {
         }
 
         infixe_reel_inverse(arbre_reel, histo_reel);
+		freetree_reel(arbre_reel);
         fclose(histo_reel);
         fclose(entree);
         entree = NULL;
