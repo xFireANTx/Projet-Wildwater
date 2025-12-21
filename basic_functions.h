@@ -33,6 +33,7 @@ typedef struct Arbre{
     racine *usine; //pour trier l arbre utilise arbre->racine->code usine       
     struct Arbre *fg;
     struct Arbre *fd;
+    int hauteur;
 }arbre;
 
 infra *remplir_infra(char *line, int type);         //marche pour 3,4,5,6 jsp si je veut utiliser la meme chose pour usine et source n est pas utile
@@ -53,6 +54,5 @@ racine *chercher_avl(const char *code_usine, arbre *root);
 
 // Traverse the AVL in-order and perform per-node action
 void traverse_avl(arbre *root);
-
 
 #endif 
