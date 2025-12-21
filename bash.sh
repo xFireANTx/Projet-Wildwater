@@ -30,6 +30,8 @@ volume_fuite(){
 	local source="$1"
 	local id="$2"
 	awk -F';' '$1 == "-" && $3 != "-" && $4 != "-"' "$source" | cut -d';' -f3-5 > temp_fuite
+	chmod a+rwx affichage_max.sh
+	chmod a+rwx affichage_min.sh
 	./exe "$1" temp_fuite out_fuite leaks "$id"
 	cat out_fuite
 	rm out_fuite temp_fuite
