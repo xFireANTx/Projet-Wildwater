@@ -226,10 +226,25 @@ float recuperer_fuites(racine *usine){
     }
     return total_fuite;
 }
-static void free_node(arbres_fuites *node);
-static void free_arbre_usine(racine *root);
-static void distribute_children(arbres_fuites *children, float parent_flux);
 
+// Recursive helper: distribute `parent_flux` equally among `children`,
+// apply each child's fuite percentage, store into `structure->flux`,
+// then recurse into each child's `actuelf`.
+static void distribute_children(arbres_fuites *children, float parent_flux){
+    if (!children) return;
+    int count = 0;
+    for (arbres_fuites *it = children; it; it = it->suivant) count++;
+    if (count == 0) return;
+    float per = parent_flux / (float)count;
+    for (arbres_fuites *c = children; c; c = c->suivant){
+        float assigned = per;
+        if (c->structure){
+            assigned = per * (1.0f - (c->structure->fuite / 100.0f));
+            c->structure->flux = assigned;
+        }
+        distribute_children(c->actuelf, assigned);
+    }
+}
 
 void calcule_fuites(racine *usine){
     if (!usine) return;
