@@ -9,15 +9,15 @@ ________________________________________________________________________________
 ## Fonctionnalités
 - Calcul du volume maximal par usine  
 - Calcul du volume capté à la source  
-- Calcul du volume réel en tenant compte des fuites  
+- Calcul du volume réel capté à la source  en tenant compte des fuites
+- Génération d'histogrammes
 - Analyse des fuites pour une usine donnée  
-- Génération de fichiers pour histogrammes  
 __________________________________________________________________________________________________________________
 
 ## Fichiers importants
 - bash.sh : point d’entrée du programme. Script permettant de lancer les différents modes histo et leaks.
 - main.c : programme principal appelé par le script.
-- avl.c / avl.h : implémentation des arbres AVL utilisés pour le tri et la recherche  
+- avl.c / avl.h : implémentation des arbres AVL utilisés pour le tri et la recherche pour la partie fuite 
 - basic_functions.c / basic_functions.h` : gestion des infrastructures et calcul des flux / fuites  
 - avl_histo_traitement.c / avl_histo_traitement.j : calcul des volumes maximaux et sources  
 - avl_histo_reel.c : calcul des volumes réels 
