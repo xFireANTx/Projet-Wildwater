@@ -4,50 +4,11 @@
 #include "avl.h"
 #include <string.h>
 
-// simple block pool to reduce malloc/free overhead
-#define POOL_BLOCK 256
-typedef struct InfraBlock {
-    struct InfraBlock *next;
-    infra items[POOL_BLOCK];
-    size_t next_idx;
-} InfraBlock;
-
-typedef struct ArbresBlock {
-    struct ArbresBlock *next;
-    arbres_fuites items[POOL_BLOCK];
-    size_t next_idx;
-} ArbresBlock;
-
-static InfraBlock *infra_blocks = NULL;
-static ArbresBlock *arbres_blocks = NULL;
-
-static infra *alloc_infra(void){
-    if (!infra_blocks || infra_blocks->next_idx >= POOL_BLOCK){
-        InfraBlock *b = malloc(sizeof(InfraBlock));
-        if (!b) return NULL;
-        b->next = infra_blocks;
-        b->next_idx = 0;
-        infra_blocks = b;
-    }
-    return &infra_blocks->items[infra_blocks->next_idx++];
-}
-
-static arbres_fuites *alloc_arbres_fuites(void){
-    if (!arbres_blocks || arbres_blocks->next_idx >= POOL_BLOCK){
-        ArbresBlock *b = malloc(sizeof(ArbresBlock));
-        if (!b) return NULL;
-        b->next = arbres_blocks;
-        b->next_idx = 0;
-        arbres_blocks = b;
-    }
-    return &arbres_blocks->items[arbres_blocks->next_idx++];
-}
-
 arbres_fuites *createNode(char *ligne, int type){
     infra *ancien = remplir_infra(ligne, type);
-    if (ancien == NULL) return NULL;
-    arbres_fuites *nouveau = alloc_arbres_fuites();
-    if (nouveau == NULL) return NULL;
+    if(ancien==NULL){exit(1);}
+    arbres_fuites *nouveau = malloc(sizeof(arbres_fuites));
+    if(nouveau == NULL){exit (1);}
     nouveau->structure = ancien;
     nouveau->suivant = NULL;
     nouveau->actuelf = NULL;
@@ -66,52 +27,60 @@ arbres_fuites *addChildfuites(arbres_fuites *parent, arbres_fuites *child){
 
 infra *remplir_infra(char *line, int type){
     if (!line) return NULL;
-    infra *new = alloc_infra();
+    infra *new = malloc(sizeof(infra));
     if(new == NULL){ 
-        fprintf(stderr, "erreur d'allocation memoire infra\n");
+        fprintf(stderr, "erreur d'allocation memoire\n");
         return NULL;
     }
     new->type = type;   
     char *col[5] = {0};
     int i = 0;
-    char *saveptr = NULL;
-    char *piece = strtok_r(line, ";", &saveptr);
+    char *tmp = strdup(line);
+    if (!tmp) { free(new); return NULL; }
+    char *piece = strtok(tmp, ";");
     while(piece && i < 5){
         col[i++] = piece;
-        piece = strtok_r(NULL, ";", &saveptr);
+        piece = strtok(NULL, ";");
     }
-    if(type == 3){ //storage
-        if (!col[1]) return NULL;
-        char *q = strchr(col[1], '#');
-        if (!q) return NULL;
-        q++;
-        memcpy(new->code_usine, q, CODE_SIZE-1);
-        new->code_usine[CODE_SIZE-1] = '\0';
-        memcpy(new->code_precedent, q, CODE_SIZE-1);
-        new->code_precedent[CODE_SIZE-1] = '\0';
+        if(type == 3){ //storage
+        col[1] = strchr(col[1], '#');
+        if (!col[1]) { free(new); free(tmp); return NULL; }
+        col[1]++;
+        strncpy(new->code_usine, col[1], sizeof(new->code_usine)-1); //la premiere ccase d un storage est vide
+        new->code_usine[sizeof(new->code_usine)-1] = '\0'; 
 
-        if (!col[2]) return NULL;
-        q = strchr(col[2], '#');
-        if (!q) return NULL;
-        q++;
-        memcpy(new->code_actuel, q, CODE_SIZE-1);
-        new->code_actuel[CODE_SIZE-1] = '\0';
-    }                                                                    
+        strncpy(new->code_precedent, col[1], sizeof(new->code_precedent)-1);
+        new->code_precedent[sizeof(new->code_precedent)-1] = '\0'; 
+
+        col[2] = strchr(col[2], '#');
+        if (!col[2]) { free(new); free(tmp); return NULL; }
+        col[2]++;
+        strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
+        new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
+    }                                                                   
     if(type == 4 || type == 5 || type == 6){ // jonction || service || cust
-        if (!col[0] || !col[1] || !col[2]) return NULL;
-        char *q = strchr(col[0], '#');
-        if (!q) return NULL; q++;
-        memcpy(new->code_usine, q, CODE_SIZE-1); new->code_usine[CODE_SIZE-1] = '\0';
+        col[0] = strchr(col[0], '#');
+        if (!col[0]) { free(new); free(tmp); return NULL; }
+        col[0]++;
+        strncpy(new->code_usine, col[0], sizeof(new->code_usine)-1);
+        new->code_usine[sizeof(new->code_usine)-1] = '\0'; 
 
-        q = strchr(col[1], '#'); if (!q) return NULL; q++;
-        memcpy(new->code_precedent, q, CODE_SIZE-1); new->code_precedent[CODE_SIZE-1] = '\0';
+        col[1] = strchr(col[1], '#');
+        if (!col[1]) { free(new); free(tmp); return NULL; }
+        col[1]++;
+        strncpy(new->code_precedent, col[1], sizeof(new->code_precedent)-1);
+        new->code_precedent[sizeof(new->code_precedent)-1] = '\0'; 
 
-        q = strchr(col[2], '#'); if (!q) return NULL; q++;
-        memcpy(new->code_actuel, q, CODE_SIZE-1); new->code_actuel[CODE_SIZE-1] = '\0';
+        col[2] = strchr(col[2], '#');
+        if (!col[2]) { free(new); free(tmp); return NULL; }
+        col[2]++;
+        strncpy(new->code_actuel, col[2], sizeof(new->code_actuel)-1);
+        new->code_actuel[sizeof(new->code_actuel)-1] = '\0'; 
     }
     new->fuite = col[4] ? strtof(col[4], NULL) : 0.0f;
 
     new->flux = 0;
+    free(tmp);
     return new;
 }
 
