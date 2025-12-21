@@ -228,54 +228,31 @@ float recuperer_fuites(racine *usine){
 }
 
 void calcule_fuites(racine *usine){
-    if (!usine) return;
-    int nombre_enfant_usine = 0;
-    int nombre_enfant_storage = 0;
-    int nombre_enfant_jonction = 0;
-    int nombre_enfant_service = 0;
-    int nombre_enfant_menage = 0;
+    if (!usine) {return;}
     for (racine *r = usine; r; r = r->suivant) {
-        nombre_enfant_usine++;
-        if (!r->actuelf) continue;
-        nombre_enfant_storage = 0;
-        for (arbres_fuites *s = r->actuelf; s; s = s->suivant) {
-            nombre_enfant_storage++;
-            nombre_enfant_jonction = 0;
-            for (arbres_fuites *j = s->actuelf; j; j = j->suivant) {
-                nombre_enfant_jonction++;
-                nombre_enfant_service = 0;
-                for (arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant) {
-                    nombre_enfant_service++;
-                    nombre_enfant_menage = 0;
-                    for (arbres_fuites *m = svc->actuelf; m; m = m->suivant) {
-                        nombre_enfant_menage++;
-                    }
-                    for(arbres_fuites *m = svc->actuelf; m; m = m->suivant){
-                        m->actuelf->structure->flux = (m->structure->flux/nombre_enfant_menage) * (1-(m->actuelf->structure->fuite / 100.0f));
-                        m = m->suivant;
-                    }
-                }
-                for(arbres_fuites *svc = j->actuelf; svc; svc = svc->suivant){
-                    svc->actuelf->structure->flux = (svc->structure->flux/nombre_enfant_service) * (1-(svc->actuelf->structure->fuite / 100.0f));
-                    svc = svc->suivant;
-                }
-            }
-            for(arbres_fuites *j = s->actuelf; j; j = j->suivant){
-                j->actuelf->structure->flux = (j->structure->flux/nombre_enfant_jonction) * (1-(j->actuelf->structure->fuite / 100.0f));
-                j = j->suivant;
-            }
-        }
-        for(arbres_fuites *s = r->actuelf; s; s = s->suivant){
-            s->actuelf->structure->flux = (s->structure->flux/nombre_enfant_storage) * (1-(s->actuelf->structure->fuite / 100.0f));
-            s = s->suivant;    
-        }
-    }
-    for(racine *r = usine; r; r = r->suivant){
-        r->actuelf->structure->flux = (r->flux/nombre_enfant_usine) * (1-(r->actuelf->structure->fuite / 100.0f));
-        r = r->suivant;
-
+        if (!r) continue;
+        if (r->actuelf == NULL) continue;
+        distribute_to_siblings(r->actuelf, r->flux);
     }
 }
+
+void distribute_to_siblings(arbres_fuites *head, float parent_flux){
+        if (!head) return;
+        int count = 0;
+        for (arbres_fuites *it = head; it; it = it->suivant) count++;
+        if (count == 0) return;
+        float per_child = parent_flux / (float)count;
+        for (arbres_fuites *it = head; it; it = it->suivant) {
+            if (it->structure) {
+                float allocated = per_child;
+                float after_fuite = allocated * (1.0f - (it->structure->fuite / 100.0f));
+                it->structure->flux = after_fuite;
+                distribute_to_siblings(it->actuelf, it->structure->flux);
+            } else {
+                distribute_to_siblings(it->actuelf, 0.0f);
+            }
+        }
+    }
 
 // In-order traversal of the AVL. Calls `visit` for each `racine` node.
 void traverse_avl(arbre *root){
