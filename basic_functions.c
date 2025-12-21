@@ -45,9 +45,9 @@ static arbres_fuites *alloc_arbres_fuites(void){
 
 arbres_fuites *createNode(char *ligne, int type){
     infra *ancien = remplir_infra(ligne, type);
-    if (ancien == NULL) { return NULL; }
+    if (ancien == NULL) return NULL;
     arbres_fuites *nouveau = alloc_arbres_fuites();
-    if (nouveau == NULL) { return NULL; }
+    if (nouveau == NULL) return NULL;
     nouveau->structure = ancien;
     nouveau->suivant = NULL;
     nouveau->actuelf = NULL;
@@ -67,11 +67,11 @@ arbres_fuites *addChildfuites(arbres_fuites *parent, arbres_fuites *child){
 infra *remplir_infra(char *line, int type){
     if (!line) return NULL;
     infra *new = alloc_infra();
-    if (new == NULL){ 
+    if(new == NULL){ 
         fprintf(stderr, "erreur d'allocation memoire infra\n");
         return NULL;
     }
-    new->type = type;
+    new->type = type;   
     char *col[5] = {0};
     int i = 0;
     char *saveptr = NULL;
@@ -96,18 +96,21 @@ infra *remplir_infra(char *line, int type){
         q++;
         memcpy(new->code_actuel, q, CODE_SIZE-1);
         new->code_actuel[CODE_SIZE-1] = '\0';
-    }
+    }                                                                    
     if(type == 4 || type == 5 || type == 6){ // jonction || service || cust
         if (!col[0] || !col[1] || !col[2]) return NULL;
         char *q = strchr(col[0], '#');
         if (!q) return NULL; q++;
         memcpy(new->code_usine, q, CODE_SIZE-1); new->code_usine[CODE_SIZE-1] = '\0';
+
         q = strchr(col[1], '#'); if (!q) return NULL; q++;
         memcpy(new->code_precedent, q, CODE_SIZE-1); new->code_precedent[CODE_SIZE-1] = '\0';
+
         q = strchr(col[2], '#'); if (!q) return NULL; q++;
         memcpy(new->code_actuel, q, CODE_SIZE-1); new->code_actuel[CODE_SIZE-1] = '\0';
     }
     new->fuite = col[4] ? strtof(col[4], NULL) : 0.0f;
+
     new->flux = 0;
     return new;
 }
