@@ -1,5 +1,3 @@
-// basic_functions.c (version finale corrigée)
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
