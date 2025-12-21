@@ -26,6 +26,8 @@
 	Volume_traitement *rotation_droite_gauche_traitement(Volume_traitement *a);
 	Volume_traitement *rotation_gauche_droite_traitement(Volume_traitement *a);
 
+	void freetree_traitement(Volume_traitement* arbre);
+
 
 
 #endif
