@@ -7,9 +7,6 @@
 #include "basic_functions.h"
 #include "avl.h"
 
-/* =========================
-   Création / rattachement
-   ========================= */
 
 arbres_fuites *createNode(char *ligne, int type) {
     infra *ancien = remplir_infra(ligne, type);
@@ -30,10 +27,6 @@ arbres_fuites *createNode(char *ligne, int type) {
     return nouveau;
 }
 
-/*
- * Ajoute child dans parent->actuelf (liste chaînée d'enfants).
- * ✅ Anti-cycle: on refuse d'insérer deux fois le même pointeur.
- */
 arbres_fuites *addChildfuites(arbres_fuites *parent, arbres_fuites *child) {
     if (parent == NULL || child == NULL) {
         fprintf(stderr, "addChildfuites: parent ou child NULL\n");
@@ -52,9 +45,6 @@ arbres_fuites *addChildfuites(arbres_fuites *parent, arbres_fuites *child) {
     return parent;
 }
 
-/* =========================
-   Parsing infra
-   ========================= */
 
 infra *remplir_infra(char *line, int type) {
     if (!line) return NULL;
@@ -141,9 +131,6 @@ infra *remplir_infra(char *line, int type) {
     return newi;
 }
 
-/* =========================
-   Recherche AVL usine
-   ========================= */
 
 racine *chercher_avl(const char *code_usine, arbre *root) {
     if (code_usine == NULL || root == NULL) return NULL;
@@ -155,15 +142,6 @@ racine *chercher_avl(const char *code_usine, arbre *root) {
     return chercher_avl(code_usine, root->fd);
 }
 
-/* =========================
-   Rattachement optimisé (anti O(n^4))
-   ========================= */
-
-/*
- * ✅ Optimisé:
- * - On stoppe dès qu'on a rattaché newn (return).
- * - Anti-doublon simple sur l’usine->actuelf (cas type=3).
- */
 racine *ajouter_arbre_usine(racine *node, arbres_fuites *newn) {
     if (node == NULL || newn == NULL || newn->structure == NULL) return node;
 
@@ -177,7 +155,7 @@ racine *ajouter_arbre_usine(racine *node, arbres_fuites *newn) {
                     }
                     newn->suivant = r->actuelf;
                     r->actuelf = newn;
-                    return node; // ✅ stop
+                    return node; 
                 }
             } break;
 
@@ -186,7 +164,7 @@ racine *ajouter_arbre_usine(racine *node, arbres_fuites *newn) {
                     if (s->structure &&
                         strcmp(s->structure->code_actuel, newn->structure->code_precedent) == 0) {
                         addChildfuites(s, newn);
-                        return node; // ✅ stop
+                        return node; 
                     }
                 }
             } break;
@@ -197,7 +175,7 @@ racine *ajouter_arbre_usine(racine *node, arbres_fuites *newn) {
                         if (j->structure &&
                             strcmp(j->structure->code_actuel, newn->structure->code_precedent) == 0) {
                             addChildfuites(j, newn);
-                            return node; // ✅ stop
+                            return node; 
                         }
                     }
                 }
@@ -210,7 +188,7 @@ racine *ajouter_arbre_usine(racine *node, arbres_fuites *newn) {
                             if (svc->structure &&
                                 strcmp(svc->structure->code_actuel, newn->structure->code_precedent) == 0) {
                                 addChildfuites(svc, newn);
-                                return node; // ✅ stop
+                                return node; 
                             }
                         }
                     }
@@ -221,14 +199,9 @@ racine *ajouter_arbre_usine(racine *node, arbres_fuites *newn) {
                 break;
         }
     }
-
-    // non rattaché (CSV incomplet ou ordre différent)
     return node;
 }
 
-/* =========================
-   Détection type (inchangé)
-   ========================= */
 
 int empty(const char *s) {
     return s == NULL || strcmp(s, "-") == 0;
@@ -266,10 +239,6 @@ int detect_type(char *line) {
     if (l1 == 9 && l2 == 9 && l3 == 10) return 6;
     return 0;
 }
-
-/* =========================
-   Calcul fuites / flux (anti-cycles)
-   ========================= */
 
 float recuperer_fuites(racine *usine) {
     if (usine == NULL) return -1.0f;
@@ -335,11 +304,6 @@ void calcule_fuites(racine *usine) {
     }
 }
 
-/*
- * ✅ Correction majeure du temps:
- * ne PAS recalculer plusieurs fois.
- * Un seul passage global suffit.
- */
 void traverse_avl(arbre *root) {
     if (root == NULL) return;
     calcule_fuites(root->usine);
