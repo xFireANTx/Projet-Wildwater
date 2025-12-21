@@ -323,7 +323,7 @@ void free_arbre_usine(racine *root){
                     for(arbres_fuites *m = svc->actuelf; m; m = m->suivant){
                         arbres_fuites *temp_menage = m;
                         m = m->suivant;
-                        free_n(temp_menage);
+                        free(temp_menage);
                     }
                 }
             }
