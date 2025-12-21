@@ -18,9 +18,10 @@ ________________________________________________________________________________
 - bash.sh : point d’entrée du programme. Script permettant de lancer les différents modes histo et leaks.
 - main.c : programme principal appelé par le script.
 - avl.c / avl.h : implémentation des arbres AVL utilisés pour le tri et la recherche pour la partie fuite 
-- basic_functions.c / basic_functions.h` : gestion des infrastructures et calcul des flux / fuites  
-- avl_histo_traitement.c / avl_histo_traitement.j : calcul des volumes maximaux et sources  
-- avl_histo_reel.c : calcul des volumes réels 
+- basic_functions.c / basic_functions.h : gestion des infrastructures et calcul des flux / fuites  
+- avl_histo_traitement.c / avl_histo_traitement.h : calcul des volumes maximaux et sources  
+- avl_histo_reel.c / avl_histo_reel.h: calcul des volumes réels
+- affichage_max.sh / affichage_min.sh: génère les fichiers png des usines
 - Makefile : compilation du projet
 - Dossier tests: contient des images png + fichiers.dat produits par notre programme à partir du fichier d'entrée "c-wildwater_v3.dat"
 ___________________________________________________________________________________________________________________
