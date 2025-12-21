@@ -74,6 +74,9 @@ histo)
 	
 
 #On trie le fichier de tel sorte à avoir les usines triées de la plus grande valeur à la plus petite
+#On utilise head et tail pour garder les 50 plus petites et les 10 plus grandes dans 2 fichiers distincts
+#On passe les deux fichiers dans deux script bash qui vont générés les histogrammes.png
+#On supprime les fichiers temporaires utilisés pour ne garder que les png
 	{
 		head -n 1 "$Nom_fichier"
 		tail -n +2 "$Nom_fichier" | sort -t';' -k2,2 -n -r
@@ -81,8 +84,9 @@ histo)
 
 	head -n 11 temp_val| tail -n 10 > temp_"$mode"10.dat
 	tail -n 50 temp_val > temp_"$mode"50.dat
-	chmod a+rwx affichage_max.sh
-	chmod a+rwx affichage_min.sh
+	#Permet au programme d exécuter le script'
+	chmod a+x affichage_max.sh
+	chmod a+x affichage_min.sh
 	./affichage_max.sh temp_"$mode"10.dat
 	./affichage_min.sh temp_"$mode"50.dat
 	rm temp_val temp_"$mode"10.dat temp_"$mode"50.dat
